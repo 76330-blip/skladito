@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SKLADITO LAN v2.0</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', sans-serif;
+    background: #F5F5F5;
+    color: #333;
+    padding-bottom: 200px;
+}
+
+.header {
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    color: white;
+    padding: 15px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 10px;
+}
+
+.header-title {
+    flex: 1;
+}
+
+.header h1 {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.breadcrumbs {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 3px;
+}
+
+.sync-status {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-top: 3px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+}
+
+.empty-state-text {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.card:active {
+    transform: scale(0.98);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.card-icon {
+    font-size: 32px;
+    margin-right: 12px;
+}
+
+.card-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.card-badge {
+    background: #4A90E2;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.card-info {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.card-photo {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 10px;
+    position: relative;
+}
+
+.btn {
+    background: #4A90E2;
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+.btn:active {
+    background: #357ABD;
+}
+
+.btn-secondary {
+    background: #6c757d;
+}
+
+.btn-danger {
+    background: #dc3545;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 14px;
+    width: auto;
+    display: inline-block;
+    margin: 5px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #4A90E2;
+}
+
+.form-select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+}
+
+.search-bar {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 40px 12px 12px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+.search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: #999;
+}
+
+.fab {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: #4A90E2;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 100;
+}
+
+.fab:active {
+    transform: scale(0.95);
+}
+
+.fab-menu {
+    position: fixed;
+    bottom: 150px;
+    right: 20px;
+    z-index: 99;
+    display: none;
+}
+
+.fab-menu.active {
+    display: block;
+}
+
+.fab-menu-item {
+    background: white;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 0.2s;
+}
+
+.fab-menu-item:active {
+    transform: scale(0.95);
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4A90E2;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.category-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+    position: relative;
+}
+
+.category-card:active {
+    transform: scale(0.95);
+}
+
+.category-icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+}
+
+.category-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.category-delete {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    display: none;
+}
+
+.photo-preview {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.photo-upload {
+    display: none;
+}
+
+.photo-upload-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.photo-upload-btn:hover {
+    border-color: #4A90E2;
+    color: #4A90E2;
+}
+
+.photo-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <button class="back-btn" id="backBtn" style="display:none;">←</button>
+            <div class="header-title">
+                <h1>🏠 SKLADITO LAN v2.0</h1>
+                <div class="breadcrumbs" id="breadcrumbs">Главная</div>
+                <div class="sync-status" id="syncStatus">Подключение...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="searchContainer" style="display:none;">
+            <div class="search-bar">
+                <input type="text" class="search-input" id="searchInput" placeholder="Поиск...">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+
+        <div id="mainContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Загрузка данных...</p>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" id="fabBtn" style="display:none;">+</button>
+    
+    <div class="fab-menu" id="fabMenu">
+        <div class="fab-menu-item" onclick="openAddContainerModal()">📦 Контейнер</div>
+        <div class="fab-menu-item" onclick="openAddItemModal()">📌 Предмет</div>
+        <div class="fab-menu-item" onclick="openCategoriesModal()">🏷️ Категории</div>
+    </div>
+
+    <!-- МОДАЛКА ДОБАВЛЕНИЯ КОНТЕЙНЕРА -->
+    <div class="modal" id="addContainerModal">
+        <div class="modal-content">
+            <div class="modal-header">Новый контейнер</div>
+            <form id="addContainerForm">
+                <div class="form-group">
+                    <label class="form-label">Название *</label>
+                    <input type="text" class="form-input" id="containerName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Фото (опционально)</label>
+                    <input type="file" class="photo-upload" id="containerPhoto" accept="image/*">
+                    <div class="photo-upload-btn" onclick="document.getElementById('containerPhoto').click()">
+                        📷 Добавить фото
+                    </div>
+                    <img id="containerPhotoPreview" class="photo-preview" style="display:none;">
+                </div>
+                <button type="submit" class="btn">Создать</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addContainerModal')">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ДОБАВЛЕНИЯ ПРЕДМЕТА -->
+    <div class="modal" id="addItemModal">
+        <div class="modal-content">
+            <div class="modal-header">Новый предмет</div>
+            <form id="addItemForm">
+                <div class="form-group">
+                    <label class="form-label">Название *</label>
+                    <input type="text" class="form-input" id="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Количество *</label>
+                    <input type="number" class="form-input" id="itemQuantity" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <select class="form-select" id="itemCategory">
+                        <option value="">Без категории</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Фото (опционально)</label>
+                    <input type="file" class="photo-upload" id="itemPhoto" accept="image/*">
+                    <div class="photo-upload-btn" onclick="document.getElementById('itemPhoto').click()">
+                        📷 Добавить фото
+                    </div>
+                    <img id="itemPhotoPreview" class="photo-preview" style="display:none;">
+                </div>
+                <button type="submit" class="btn">Создать</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addItemModal')">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА КАТЕГОРИЙ -->
+    <div class="modal" id="categoriesModal">
+        <div class="modal-content">
+            <div class="modal-header">Управление категориями</div>
+            <div id="categoriesList"></div>
+            <div class="form-group">
+                <input type="text" class="form-input" id="newCategoryName" placeholder="Название категории">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" id="newCategoryIcon" placeholder="Иконка (эмодзи)" maxlength="2">
+            </div>
+            <button class="btn" onclick="addCategory()">Добавить категорию</button>
+            <button class="btn btn-secondary" onclick="closeModal('categoriesModal')">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА РЕДАКТИРОВАНИЯ -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header" id="editModalTitle">Редактировать</div>
+            <form id="editForm">
+                <div id="editFormContent"></div>
+                <button type="submit" class="btn">Сохранить</button>
+                <button type="button" class="btn btn-danger" id="deleteBtn">Удалить</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+const API_BASE = '/api';
+let state = {
+    containers: [],
+    items: [],
+    categories: [],
+    currentContainer: null,
+    viewMode: 'main',
+    editingObject: null
+};
+
+async function init() {
+    try {
+        updateStatus('Подключение...');
+        const health = await fetch(`${API_BASE}/health`);
+        const healthData = await health.json();
+        
+        if (healthData.status !== 'ok') throw new Error('Сервер недоступен');
+        
+        updateStatus('✅ v' + healthData.version);
+        await loadData();
+        setupEventListeners();
+        renderMain();
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showError('Не удалось подключиться к серверу');
+        updateStatus('❌ Ошибка');
+    }
+}
+
+async function loadData() {
+    const response = await fetch(`${API_BASE}/sync`);
+    const data = await response.json();
+    state.containers = data.containers || [];
+    state.items = data.items || [];
+    state.categories = data.categories || [];
+    updateStatus('✅ Синхронизировано');
+}
+
+function updateStatus(message) {
+    document.getElementById('syncStatus').textContent = message;
+}
+
+function showError(message) {
+    document.getElementById('mainContent').innerHTML = `<div class="alert alert-error">${message}</div>`;
+}
+
+function setupEventListeners() {
+    document.getElementById('backBtn').addEventListener('click', handleBack);
+    document.getElementById('fabBtn').addEventListener('click', toggleFabMenu);
+    document.getElementById('searchInput').addEventListener('input', handleSearch);
+    document.getElementById('addContainerForm').addEventListener('submit', handleAddContainer);
+    document.getElementById('addItemForm').addEventListener('submit', handleAddItem);
+    document.getElementById('editForm').addEventListener('submit', handleEdit);
+    document.getElementById('deleteBtn').addEventListener('click', handleDelete);
+    document.getElementById('containerPhoto').addEventListener('change', (e) => previewPhoto(e, 'containerPhotoPreview'));
+    document.getElementById('itemPhoto').addEventListener('change', (e) => previewPhoto(e, 'itemPhotoPreview'));
+    
+    document.addEventListener('click', (e) => {
+        const fab = document.getElementById('fabBtn');
+        const menu = document.getElementById('fabMenu');
+        if (!fab.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('active');
+        }
+    });
+}
+
+function toggleFabMenu(e) {
+    e.stopPropagation();
+    document.getElementById('fabMenu').classList.toggle('active');
+}
+
+function openAddContainerModal() {
+    document.getElementById('fabMenu').classList.remove('active');
+    openModal('addContainerModal');
+}
+
+function openAddItemModal() {
+    document.getElementById('fabMenu').classList.remove('active');
+    fillCategorySelect();
+    openModal('addItemModal');
+}
+
+function openCategoriesModal() {
+    document.getElementById('fabMenu').classList.remove('active');
+    renderCategoriesList();
+    openModal('categoriesModal');
+}
+
+function renderMain() {
+    state.viewMode = 'main';
+    state.currentContainer = null;
+    
+    document.getElementById('breadcrumbs').textContent = 'Главная';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('searchContainer').style.display = 'block';
+    document.getElementById('fabBtn').style.display = 'block';
+    
+    const rootContainers = state.containers.filter(c => !c.parent);
+    let html = '';
+    
+    if (rootContainers.length > 0) {
+        html += '<h3 style="margin:20px 0 12px 0;">Контейнеры</h3>';
+        rootContainers.forEach(c => html += renderContainerCard(c));
+    }
+    
+    if (rootContainers.length === 0 && state.items.length === 0) {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-text">Пусто</div>
+                <div>Нажмите + чтобы начать</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+function renderCategoriesList() {
+    let html = '';
+    state.categories.forEach(cat => {
+        html += `
+            <div class="card" style="display:flex;align-items:center;margin-bottom:10px;">
+                <div style="font-size:32px;margin-right:12px;">${cat.icon}</div>
+                <div style="flex:1;">${cat.name}</div>
+                <button class="btn-small btn-danger" onclick="deleteCategory('${cat.id}')">×</button>
+            </div>
+        `;
+    });
+    document.getElementById('categoriesList').innerHTML = html || '<p style="color:#999;text-align:center;">Нет категорий</p>';
+}
+
+async function addCategory() {
+    const name = document.getElementById('newCategoryName').value.trim();
+    const icon = document.getElementById('newCategoryIcon').value.trim();
+    
+    if (!name || !icon) {
+        alert('Заполните название и иконку');
+        return;
+    }
+    
+    const category = {
+        id: 'cat' + Date.now(),
+        name: name,
+        icon: icon,
+        order: state.categories.length
+    };
+    
+    state.categories.push(category);
+    document.getElementById('newCategoryName').value = '';
+    document.getElementById('newCategoryIcon').value = '';
+    renderCategoriesList();
+}
+
+async function deleteCategory(categoryId) {
+    if (!confirm('Удалить категорию?')) return;
+    
+    const itemsCount = state.items.filter(i => i.category === categoryId).length;
+    if (itemsCount > 0) {
+        if (!confirm(`В категории ${itemsCount} предметов. Удалить? Предметы останутся без категории.`)) return;
+    }
+    
+    state.categories = state.categories.filter(c => c.id !== categoryId);
+    renderCategoriesList();
+}
+
+function renderContainerCard(container) {
+    const children = state.containers.filter(c => c.parent === container.id).length;
+    const items = state.items.filter(i => i.container === container.id).length;
+    const total = children + items;
+    
+    let html = `
+        <div class="card" onclick="openContainer('${container.id}')">
+            <div class="card-header">
+                <div class="card-icon">📦</div>
+                <div class="card-title">${container.name}</div>
+                ${total > 0 ? `<div class="card-badge">${total}</div>` : ''}
+            </div>
+    `;
+    
+    if (container.photo) {
+        html += `<img src="${container.photo}" class="card-photo">`;
+    }
+    
+    html += `
+            <div class="card-info">
+                ${children > 0 ? `Контейнеров: ${children} ` : ''}
+                ${items > 0 ? `Предметов: ${items}` : ''}
+                ${total === 0 ? 'Пусто' : ''}
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+function renderItemCard(item) {
+    const category = state.categories.find(c => c.id === item.category);
+    
+    let html = `
+        <div class="card" onclick="editItem('${item.id}')">
+            <div class="card-header">
+                <div class="card-icon">${category ? category.icon : '📌'}</div>
+                <div class="card-title">${item.name}</div>
+                <div class="card-badge">×${item.quantity}</div>
+            </div>
+    `;
+    
+    if (item.photo) {
+        html += `<img src="${item.photo}" class="card-photo">`;
+    }
+    
+    if (category) {
+        html += `<div class="card-info">${category.name}</div>`;
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function openContainer(containerId) {
+    state.viewMode = 'container';
+    state.currentContainer = containerId;
+    
+    const container = state.containers.find(c => c.id === containerId);
+    if (!container) return;
+    
+    document.getElementById('breadcrumbs').textContent = getContainerPath(containerId);
+    document.getElementById('backBtn').style.display = 'block';
+    document.getElementById('searchContainer').style.display = 'none';
+    document.getElementById('fabBtn').style.display = 'block';
+    
+    const childContainers = state.containers.filter(c => c.parent === containerId);
+    const items = state.items.filter(i => i.container === containerId);
+    
+    let html = `
+        <div class="card" onclick="editContainer('${containerId}')">
+            <div class="card-header">
+                <div class="card-icon">📦</div>
+                <div class="card-title">${container.name}</div>
+            </div>
+            ${container.photo ? `<img src="${container.photo}" class="card-photo">` : ''}
+            <div class="card-info">Нажмите для редактирования</div>
+        </div>
+    `;
+    
+    if (childContainers.length > 0) {
+        html += '<h3 style="margin:20px 0 12px 0;">Контейнеры</h3>';
+        childContainers.forEach(c => html += renderContainerCard(c));
+    }
+    
+    if (items.length > 0) {
+        html += '<h3 style="margin:20px 0 12px 0;">Предметы</h3>';
+        items.forEach(item => html += renderItemCard(item));
+    }
+    
+    if (childContainers.length === 0 && items.length === 0) {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-text">Пусто</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+function showCategory(categoryId) {
+    state.viewMode = 'category';
+    const category = state.categories.find(c => c.id === categoryId);
+    if (!category) return;
+    
+    document.getElementById('breadcrumbs').textContent = `Категория: ${category.name}`;
+    document.getElementById('backBtn').style.display = 'block';
+    document.getElementById('searchContainer').style.display = 'none';
+    document.getElementById('fabBtn').style.display = 'none';
+    
+    const items = state.items.filter(i => i.category === categoryId);
+    
+    let html = `<h2 style="margin-bottom:20px;">${category.icon} ${category.name}</h2>`;
+    
+    if (items.length > 0) {
+        items.forEach(item => {
+            const container = state.containers.find(c => c.id === item.container);
+            let itemHtml = renderItemCard(item);
+            if (container) {
+                const path = getContainerPath(container.id);
+                itemHtml = itemHtml.replace('</div>', `<div class="card-info">📍 ${path}</div></div>`);
+            }
+            html += itemHtml;
+        });
+    } else {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-text">Нет предметов</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+function handleSearch(e) {
+    const query = e.target.value.toLowerCase().trim();
+    
+    if (!query) {
+        renderMain();
+        return;
+    }
+    
+    state.viewMode = 'search';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('fabBtn').style.display = 'none';
+    
+    const foundContainers = state.containers.filter(c => c.name.toLowerCase().includes(query));
+    const foundItems = state.items.filter(i => i.name.toLowerCase().includes(query));
+    
+    let html = `<h3 style="margin-bottom:12px;">Результаты: "${query}"</h3>`;
+    
+    if (foundContainers.length > 0) {
+        html += '<h4 style="margin:20px 0 12px 0;">Контейнеры</h4>';
+        foundContainers.forEach(c => html += renderContainerCard(c));
+    }
+    
+    if (foundItems.length > 0) {
+        html += '<h4 style="margin:20px 0 12px 0;">Предметы</h4>';
+        foundItems.forEach(item => html += renderItemCard(item));
+    }
+    
+    if (foundContainers.length === 0 && foundItems.length === 0) {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-text">Ничего не найдено</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+function handleBack() {
+    if (state.viewMode === 'container' && state.currentContainer) {
+        const container = state.containers.find(c => c.id === state.currentContainer);
+        if (container && container.parent) {
+            openContainer(container.parent);
+        } else {
+            renderMain();
+        }
+    } else {
+        renderMain();
+    }
+}
+
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+    
+    if (modalId === 'addContainerModal') {
+        document.getElementById('addContainerForm').reset();
+        document.getElementById('containerPhotoPreview').style.display = 'none';
+    }
+    if (modalId === 'addItemModal') {
+        document.getElementById('addItemForm').reset();
+        document.getElementById('itemPhotoPreview').style.display = 'none';
+    }
+}
+
+function fillCategorySelect() {
+    const select = document.getElementById('itemCategory');
+    select.innerHTML = '<option value="">Без категории</option>';
+    state.categories.forEach(cat => {
+        select.innerHTML += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+    });
+}
+
+function previewPhoto(e, previewId) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = document.getElementById(previewId);
+        img.src = event.target.result;
+        img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+async function handleAddContainer(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('containerName').value;
+    const photoFile = document.getElementById('containerPhoto').files[0];
+    
+    let photo = null;
+    if (photoFile) {
+        photo = await fileToBase64(photoFile);
+    }
+    
+    const container = {
+        id: 'c' + Date.now(),
+        name: name,
+        photo: photo,
+        parent: state.currentContainer,
+        created: new Date().toISOString()
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE}/containers`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(container)
+        });
+        
+        if (!response.ok) throw new Error('Ошибка создания');
+        
+        await loadData();
+        closeModal('addContainerModal');
+        
+        if (state.currentContainer) {
+            openContainer(state.currentContainer);
+        } else {
+            renderMain();
+        }
+    } catch (error) {
+        alert('Ошибка: ' + error.message);
+    }
+}
+
+async function handleAddItem(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('itemName').value;
+    const quantity = parseInt(document.getElementById('itemQuantity').value);
+    const category = document.getElementById('itemCategory').value || null;
+    const photoFile = document.getElementById('itemPhoto').files[0];
+    
+    let photo = null;
+    if (photoFile) {
+        photo = await fileToBase64(photoFile);
+    }
+    
+    const item = {
+        id: 'i' + Date.now(),
+        name: name,
+        quantity: quantity,
+        category: category,
+        photo: photo,
+        container: state.currentContainer,
+        created: new Date().toISOString()
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE}/items`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(item)
+        });
+        
+        if (!response.ok) throw new Error('Ошибка создания');
+        
+        await loadData();
+        closeModal('addItemModal');
+        openContainer(state.currentContainer);
+    } catch (error) {
+        alert('Ошибка: ' + error.message);
+    }
+}
+
+function editContainer(containerId) {
+    const container = state.containers.find(c => c.id === containerId);
+    if (!container) return;
+    
+    state.editingObject = { type: 'container', data: container };
+    
+    document.getElementById('editModalTitle').textContent = 'Редактировать контейнер';
+    
+    let html = `
+        <input type="hidden" id="editType" value="container">
+        <input type="hidden" id="editId" value="${container.id}">
+        <div class="form-group">
+            <label class="form-label">Название</label>
+            <input type="text" class="form-input" id="editName" value="${container.name}" required>
+        </div>
+    `;
+    
+    if (container.photo) {
+        html += `
+            <div class="form-group">
+                <label class="form-label">Фото</label>
+                <img src="${container.photo}" class="photo-preview" id="editPhotoPreview">
+                <div class="photo-actions">
+                    <button type="button" class="btn-small" onclick="document.getElementById('editPhotoInput').click()">Заменить</button>
+                    <button type="button" class="btn-small btn-danger" onclick="deletePhoto()">Удалить</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="form-group">
+                <label class="form-label">Фото</label>
+                <div class="photo-upload-btn" onclick="document.getElementById('editPhotoInput').click()">
+                    📷 Добавить фото
+                </div>
+                <img id="editPhotoPreview" class="photo-preview" style="display:none;">
+            </div>
+        `;
+    }
+    
+    html += '<input type="file" class="photo-upload" id="editPhotoInput" accept="image/*">';
+    
+    document.getElementById('editFormContent').innerHTML = html;
+    document.getElementById('editPhotoInput').addEventListener('change', (e) => previewPhoto(e, 'editPhotoPreview'));
+    openModal('editModal');
+}
+
+function editItem(itemId) {
+    const item = state.items.find(i => i.id === itemId);
+    if (!item) return;
+    
+    state.editingObject = { type: 'item', data: item };
+    
+    document.getElementById('editModalTitle').textContent = 'Редактировать предмет';
+    
+    let html = `
+        <input type="hidden" id="editType" value="item">
+        <input type="hidden" id="editId" value="${item.id}">
+        <div class="form-group">
+            <label class="form-label">Название</label>
+            <input type="text" class="form-input" id="editName" value="${item.name}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Количество</label>
+            <input type="number" class="form-input" id="editQuantity" value="${item.quantity}" min="1" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Категория</label>
+            <select class="form-select" id="editCategory">
+                <option value="">Без категории</option>
+                ${state.categories.map(cat => 
+                    `<option value="${cat.id}" ${cat.id === item.category ? 'selected' : ''}>${cat.icon} ${cat.name}</option>`
+                ).join('')}
+            </select>
+        </div>
+    `;
+    
+    if (item.photo) {
+        html += `
+            <div class="form-group">
+                <label class="form-label">Фото</label>
+                <img src="${item.photo}" class="photo-preview" id="editPhotoPreview">
+                <div class="photo-actions">
+                    <button type="button" class="btn-small" onclick="document.getElementById('editPhotoInput').click()">Заменить</button>
+                    <button type="button" class="btn-small btn-danger" onclick="deletePhoto()">Удалить</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="form-group">
+                <label class="form-label">Фото</label>
+                <div class="photo-upload-btn" onclick="document.getElementById('editPhotoInput').click()">
+                    📷 Добавить фото
+                </div>
+                <img id="editPhotoPreview" class="photo-preview" style="display:none;">
+            </div>
+        `;
+    }
+    
+    html += '<input type="file" class="photo-upload" id="editPhotoInput" accept="image/*">';
+    
+    document.getElementById('editFormContent').innerHTML = html;
+    document.getElementById('editPhotoInput').addEventListener('change', (e) => previewPhoto(e, 'editPhotoPreview'));
+    openModal('editModal');
+}
+
+function deletePhoto() {
+    const preview = document.getElementById('editPhotoPreview');
+    preview.style.display = 'none';
+    preview.src = '';
+    state.editingObject.data.photo = null;
+}
+
+async function handleEdit(e) {
+    e.preventDefault();
+    
+    const type = document.getElementById('editType').value;
+    const id = document.getElementById('editId').value;
+    const name = document.getElementById('editName').value;
+    
+    const photoInput = document.getElementById('editPhotoInput');
+    let newPhoto = null;
+    if (photoInput.files[0]) {
+        newPhoto = await fileToBase64(photoInput.files[0]);
+    }
+    
+    try {
+        if (type === 'container') {
+            const container = state.containers.find(c => c.id === id);
+            container.name = name;
+            if (newPhoto) container.photo = newPhoto;
+            if (state.editingObject.data.photo === null) container.photo = null;
+            
+            const response = await fetch(`${API_BASE}/containers/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(container)
+            });
+            
+            if (!response.ok) throw new Error('Ошибка сохранения');
+            
+        } else {
+            const item = state.items.find(i => i.id === id);
+            item.name = name;
+            item.quantity = parseInt(document.getElementById('editQuantity').value);
+            item.category = document.getElementById('editCategory').value || null;
+            if (newPhoto) item.photo = newPhoto;
+            if (state.editingObject.data.photo === null) item.photo = null;
+            
+            const response = await fetch(`${API_BASE}/items/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(item)
+            });
+            
+            if (!response.ok) throw new Error('Ошибка сохранения');
+        }
+        
+        await loadData();
+        closeModal('editModal');
+        
+        if (state.viewMode === 'container') {
+            openContainer(state.currentContainer);
+        } else {
+            renderMain();
+        }
+        
+    } catch (error) {
+        alert('Ошибка: ' + error.message);
+    }
+}
+
+async function handleDelete() {
+    if (!confirm('Удалить? Это действие нельзя отменить.')) return;
+    
+    const type = document.getElementById('editType').value;
+    const id = document.getElementById('editId').value;
+    
+    try {
+        if (type === 'container') {
+            const response = await fetch(`${API_BASE}/containers/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Ошибка удаления');
+            }
+        } else {
+            const response = await fetch(`${API_BASE}/items/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) throw new Error('Ошибка удаления');
+        }
+        
+        await loadData();
+        closeModal('editModal');
+        
+        if (state.viewMode === 'container') {
+            openContainer(state.currentContainer);
+        } else {
+            renderMain();
+        }
+        
+    } catch (error) {
+        alert('Ошибка: ' + error.message);
+    }
+}
+
+function getContainerPath(containerId) {
+    const container = state.containers.find(c => c.id === containerId);
+    if (!container) return '';
+    
+    let path = container.name;
+    let current = container;
+    
+    while (current.parent) {
+        const parent = state.containers.find(c => c.id === current.parent);
+        if (!parent) break;
+        path = parent.name + ' > ' + path;
+        current = parent;
+    }
+    
+    return 'Главная > ' + path;
+}
+
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+init();
+    </script>
+</body>
+</html>
