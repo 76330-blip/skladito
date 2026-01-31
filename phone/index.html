@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>SKLADITO Phone v2.0</title>
+    <title>SKLADITO Phone v2.1.0</title>
     <style>
 * {
     margin: 0;
@@ -188,6 +188,108 @@ body {
 
 .storage-fill.danger {
     background: #f44336;
+}
+
+/* ONBOARDING */
+.onboarding {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.onboarding-slides {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+.onboarding-slide {
+    min-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    text-align: center;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.onboarding-icon {
+    font-size: 80px;
+    margin-bottom: 30px;
+}
+
+.onboarding-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.3;
+}
+
+.onboarding-text {
+    font-size: 18px;
+    opacity: 0.9;
+    line-height: 1.6;
+    max-width: 320px;
+}
+
+.onboarding-footer {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.onboarding-dots {
+    display: flex;
+    gap: 10px;
+}
+
+.onboarding-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transition: background 0.3s, transform 0.3s;
+}
+
+.onboarding-dot.active {
+    background: white;
+    transform: scale(1.2);
+}
+
+.onboarding-btn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 16px 60px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.onboarding-btn:active {
+    transform: scale(0.95);
+}
+
+.onboarding-skip {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 10px;
 }
 
 .container {
@@ -524,14 +626,151 @@ body {
     background: #fff3cd;
     color: #856404;
 }
+/* ONBOARDING */
+.onboarding {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 2000;
+    color: white;
+    overflow: hidden;
+}
+
+.onboarding.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.onboarding-slides {
+    flex: 1;
+    display: flex;
+    overflow-x: hidden;
+    scroll-snap-type: x mandatory;
+}
+
+.onboarding-slide {
+    min-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    text-align: center;
+    scroll-snap-align: start;
+}
+
+.onboarding-icon {
+    font-size: 80px;
+    margin-bottom: 30px;
+}
+
+.onboarding-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.3;
+}
+
+.onboarding-text {
+    font-size: 18px;
+    opacity: 0.9;
+    line-height: 1.6;
+    max-width: 320px;
+}
+
+.onboarding-nav {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.onboarding-dots {
+    display: flex;
+    gap: 10px;
+}
+
+.onboarding-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transition: all 0.3s;
+}
+
+.onboarding-dot.active {
+    background: white;
+    width: 24px;
+    border-radius: 5px;
+}
+
+.onboarding-btn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 16px 48px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.onboarding-btn:active {
+    transform: scale(0.95);
+}
+
+.onboarding-skip {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 10px;
+}
+
     </style>
 </head>
 <body>
+    <!-- ONBOARDING -->
+    <div class="onboarding" id="onboarding">
+        <div class="onboarding-slides" id="onboardingSlides">
+            <div class="onboarding-slide">
+                <div class="onboarding-icon">📦</div>
+                <div class="onboarding-title">Добро пожаловать в SKLADITO</div>
+                <div class="onboarding-text">Приложение для учёта вещей, разбросанных по разным местам хранения</div>
+            </div>
+            <div class="onboarding-slide">
+                <div class="onboarding-icon">🗄️</div>
+                <div class="onboarding-title">Создавайте контейнеры</div>
+                <div class="onboarding-text">Комнаты, шкафы, полки, коробки — любая вложенность. Как в реальной жизни</div>
+            </div>
+            <div class="onboarding-slide">
+                <div class="onboarding-icon">🔍</div>
+                <div class="onboarding-title">Находите мгновенно</div>
+                <div class="onboarding-text">Забыли где лежит вещь? Поиск покажет точное местоположение</div>
+            </div>
+        </div>
+        <div class="onboarding-nav">
+            <div class="onboarding-dots">
+                <div class="onboarding-dot active" data-slide="0"></div>
+                <div class="onboarding-dot" data-slide="1"></div>
+                <div class="onboarding-dot" data-slide="2"></div>
+            </div>
+            <button class="onboarding-btn" id="onboardingBtn">Далее</button>
+            <button class="onboarding-skip" id="onboardingSkip">Пропустить</button>
+        </div>
+    </div>
     <div class="header">
         <div class="header-content">
             <button class="back-btn" id="backBtn" style="display:none;">←</button>
             <div class="header-title">
-                <h1>📱 SKLADITO Phone v2.0</h1>
+                <h1>📱 SKLADITO Phone v2.1.0</h1>
                 <div class="breadcrumbs" id="breadcrumbs">Главная</div>
                 <div class="sync-status" id="syncStatus">Локальное хранилище</div>
             </div>
@@ -575,6 +814,14 @@ body {
                 <div class="burger-item-text">
                     <div class="burger-item-title">Просмотр категорий</div>
                     <div class="burger-item-subtitle">Все категории предметов</div>
+                </div>
+            </div>
+
+            <div class="burger-item" onclick="showOnboarding(); closeBurgerMenu();">
+                <div class="burger-item-icon">❓</div>
+                <div class="burger-item-text">
+                    <div class="burger-item-title">О приложении</div>
+                    <div class="burger-item-subtitle">Как пользоваться</div>
                 </div>
             </div>
         </div>
@@ -708,6 +955,81 @@ function init() {
     loadFromStorage();
     updateStorageIndicator();
     setupEventListeners();
+    setupOnboarding();
+    
+    // Показываем онбординг только при первом запуске
+    if (!localStorage.getItem('skladito_onboarding_done')) {
+        showOnboarding();
+    } else {
+        renderMain();
+    }
+}
+
+// ОНБОРДИНГ
+let currentSlide = 0;
+const totalSlides = 3;
+
+function showOnboarding() {
+    document.getElementById('onboarding').classList.add('active');
+    currentSlide = 0;
+    updateOnboardingUI();
+}
+
+function setupOnboarding() {
+    document.getElementById('onboardingBtn').addEventListener('click', nextSlide);
+    document.getElementById('onboardingSkip').addEventListener('click', finishOnboarding);
+    
+    // Свайп поддержка
+    const slides = document.getElementById('onboardingSlides');
+    let startX = 0;
+    
+    slides.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+    });
+    
+    slides.addEventListener('touchend', (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const diff = startX - endX;
+        
+        if (Math.abs(diff) > 50) {
+            if (diff > 0 && currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateOnboardingUI();
+            } else if (diff < 0 && currentSlide > 0) {
+                currentSlide--;
+                updateOnboardingUI();
+            }
+        }
+    });
+}
+
+function nextSlide() {
+    if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateOnboardingUI();
+    } else {
+        finishOnboarding();
+    }
+}
+
+function updateOnboardingUI() {
+    // Скролл к слайду
+    const slides = document.getElementById('onboardingSlides');
+    slides.scrollTo({ left: currentSlide * window.innerWidth, behavior: 'smooth' });
+    
+    // Обновляем точки
+    document.querySelectorAll('.onboarding-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentSlide);
+    });
+    
+    // Обновляем кнопку
+    const btn = document.getElementById('onboardingBtn');
+    btn.textContent = currentSlide === totalSlides - 1 ? 'Начать' : 'Далее';
+}
+
+function finishOnboarding() {
+    localStorage.setItem('skladito_onboarding_done', 'true');
+    document.getElementById('onboarding').classList.remove('active');
     renderMain();
 }
 
