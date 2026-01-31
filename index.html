@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>SKLADITO Phone v2.1.0</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', sans-serif;
+    background: #F5F5F5;
+    color: #333;
+    padding-bottom: 200px;
+}
+
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-right: 10px;
+}
+
+.burger-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-left: auto;
+}
+
+.header-title {
+    flex: 1;
+}
+
+.header h1 {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.breadcrumbs {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 3px;
+}
+
+.sync-status {
+    font-size: 11px;
+    opacity: 0.8;
+    margin-top: 3px;
+}
+
+.burger-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.2);
+    z-index: 200;
+    transition: right 0.3s;
+    overflow-y: auto;
+}
+
+.burger-menu.active {
+    right: 0;
+}
+
+.burger-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 199;
+    display: none;
+}
+
+.burger-overlay.active {
+    display: block;
+}
+
+.burger-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+}
+
+.burger-header h2 {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.burger-header p {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.burger-content {
+    padding: 20px;
+}
+
+.burger-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.burger-item:active {
+    background: #f5f5f5;
+}
+
+.burger-item-icon {
+    font-size: 24px;
+}
+
+.burger-item-text {
+    flex: 1;
+}
+
+.burger-item-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.burger-item-subtitle {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.storage-indicator {
+    background: #f5f5f5;
+    padding: 12px 15px;
+    margin: 15px 0;
+    border-radius: 8px;
+}
+
+.storage-bar {
+    height: 6px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.storage-fill {
+    height: 100%;
+    background: #667eea;
+    transition: width 0.3s, background 0.3s;
+}
+
+.storage-fill.warning {
+    background: #ff9800;
+}
+
+.storage-fill.danger {
+    background: #f44336;
+}
+
+/* ONBOARDING */
+.onboarding {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.onboarding-slides {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+.onboarding-slide {
+    min-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    text-align: center;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.onboarding-icon {
+    font-size: 80px;
+    margin-bottom: 30px;
+}
+
+.onboarding-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.3;
+}
+
+.onboarding-text {
+    font-size: 18px;
+    opacity: 0.9;
+    line-height: 1.6;
+    max-width: 320px;
+}
+
+.onboarding-footer {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.onboarding-dots {
+    display: flex;
+    gap: 10px;
+}
+
+.onboarding-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transition: background 0.3s, transform 0.3s;
+}
+
+.onboarding-dot.active {
+    background: white;
+    transform: scale(1.2);
+}
+
+.onboarding-btn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 16px 60px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.onboarding-btn:active {
+    transform: scale(0.95);
+}
+
+.onboarding-skip {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+}
+
+.empty-state-text {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.card:active {
+    transform: scale(0.98);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.card-icon {
+    font-size: 32px;
+    margin-right: 12px;
+}
+
+.card-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.card-badge {
+    background: #667eea;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.card-info {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.card-photo {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+.btn:active {
+    background: #764ba2;
+}
+
+.btn-secondary {
+    background: #6c757d;
+}
+
+.btn-danger {
+    background: #dc3545;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 14px;
+    width: auto;
+    display: inline-block;
+    margin: 5px;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+}
+
+.search-bar {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 40px 12px 12px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+.search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: #999;
+}
+
+.fab {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 100;
+}
+
+.fab:active {
+    transform: scale(0.95);
+}
+
+.fab-menu {
+    position: fixed;
+    bottom: 150px;
+    right: 20px;
+    z-index: 99;
+    display: none;
+}
+
+.fab-menu.active {
+    display: block;
+}
+
+.fab-menu-item {
+    background: white;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 0.2s;
+}
+
+.fab-menu-item:active {
+    transform: scale(0.95);
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.category-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+}
+
+.category-card:active {
+    transform: scale(0.95);
+}
+
+.category-icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+}
+
+.category-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.photo-preview {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.photo-upload {
+    display: none;
+}
+
+.photo-upload-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s;
+    margin-top: 10px;
+}
+
+.photo-upload-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.photo-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+/* ONBOARDING */
+.onboarding {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 2000;
+    color: white;
+    overflow: hidden;
+}
+
+.onboarding.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.onboarding-slides {
+    flex: 1;
+    display: flex;
+    overflow-x: hidden;
+    scroll-snap-type: x mandatory;
+}
+
+.onboarding-slide {
+    min-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 30px;
+    text-align: center;
+    scroll-snap-align: start;
+}
+
+.onboarding-icon {
+    font-size: 80px;
+    margin-bottom: 30px;
+}
+
+.onboarding-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.3;
+}
+
+.onboarding-text {
+    font-size: 18px;
+    opacity: 0.9;
+    line-height: 1.6;
+    max-width: 320px;
+}
+
+.onboarding-nav {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.onboarding-dots {
+    display: flex;
+    gap: 10px;
+}
+
+.onboarding-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transition: all 0.3s;
+}
+
+.onboarding-dot.active {
+    background: white;
+    width: 24px;
+    border-radius: 5px;
+}
+
+.onboarding-btn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 16px 48px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.onboarding-btn:active {
+    transform: scale(0.95);
+}
+
+.onboarding-skip {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 10px;
+}
+
+    </style>
+</head>
+<body>
+    <!-- ONBOARDING -->
+    <div class="onboarding" id="onboarding">
+        <div class="onboarding-slides" id="onboardingSlides">
+            <div class="onboarding-slide">
+                <div class="onboarding-icon">📦</div>
+                <div class="onboarding-title">Добро пожаловать в SKLADITO</div>
+                <div class="onboarding-text">Приложение для учёта вещей, разбросанных по разным местам хранения</div>
+            </div>
+            <div class="onboarding-slide">
+                <div class="onboarding-icon">🗄️</div>
+                <div class="onboarding-title">Создавайте контейнеры</div>
+                <div class="onboarding-text">Комнаты, шкафы, полки, коробки — любая вложенность. Как в реальной жизни</div>
+            </div>
+            <div class="onboarding-slide">
+                <div class="onboarding-icon">🔍</div>
+                <div class="onboarding-title">Находите мгновенно</div>
+                <div class="onboarding-text">Забыли где лежит вещь? Поиск покажет точное местоположение</div>
+            </div>
+        </div>
+        <div class="onboarding-nav">
+            <div class="onboarding-dots">
+                <div class="onboarding-dot active" data-slide="0"></div>
+                <div class="onboarding-dot" data-slide="1"></div>
+                <div class="onboarding-dot" data-slide="2"></div>
+            </div>
+            <button class="onboarding-btn" id="onboardingBtn">Далее</button>
+            <button class="onboarding-skip" id="onboardingSkip">Пропустить</button>
+        </div>
+    </div>
+    <div class="header">
+        <div class="header-content">
+            <button class="back-btn" id="backBtn" style="display:none;">←</button>
+            <div class="header-title">
+                <h1>📱 SKLADITO Phone v2.1.0</h1>
+                <div class="breadcrumbs" id="breadcrumbs">Главная</div>
+                <div class="sync-status" id="syncStatus">Локальное хранилище</div>
+            </div>
+            <button class="burger-btn" id="burgerBtn">☰</button>
+        </div>
+    </div>
+
+    <!-- БУРГЕР-МЕНЮ -->
+    <div class="burger-overlay" id="burgerOverlay" onclick="closeBurgerMenu()"></div>
+    <div class="burger-menu" id="burgerMenu">
+        <div class="burger-header">
+            <h2>📱 SKLADITO Phone</h2>
+            <p>Локальное хранилище</p>
+        </div>
+        <div class="burger-content">
+            <div class="storage-indicator">
+                <div style="font-size:14px;margin-bottom:5px;">Хранилище: <strong id="burgerStorageUsed">0 МБ</strong></div>
+                <div class="storage-bar">
+                    <div class="storage-fill" id="burgerStorageFill"></div>
+                </div>
+            </div>
+
+            <div class="burger-item" onclick="exportData(); closeBurgerMenu();">
+                <div class="burger-item-icon">📤</div>
+                <div class="burger-item-text">
+                    <div class="burger-item-title">Экспорт данных</div>
+                    <div class="burger-item-subtitle">Сохранить резервную копию</div>
+                </div>
+            </div>
+
+            <div class="burger-item" onclick="document.getElementById('importFile').click(); closeBurgerMenu();">
+                <div class="burger-item-icon">📥</div>
+                <div class="burger-item-text">
+                    <div class="burger-item-title">Импорт данных</div>
+                    <div class="burger-item-subtitle">Восстановить из копии</div>
+                </div>
+            </div>
+
+            <div class="burger-item" onclick="openCategoriesModal(); closeBurgerMenu();">
+                <div class="burger-item-icon">🏷️</div>
+                <div class="burger-item-text">
+                    <div class="burger-item-title">Просмотр категорий</div>
+                    <div class="burger-item-subtitle">Все категории предметов</div>
+                </div>
+            </div>
+
+            <div class="burger-item" onclick="showOnboarding(); closeBurgerMenu();">
+                <div class="burger-item-icon">❓</div>
+                <div class="burger-item-text">
+                    <div class="burger-item-title">О приложении</div>
+                    <div class="burger-item-subtitle">Как пользоваться</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+
+    <div class="container">
+        <div id="searchContainer" style="display:none;">
+            <div class="search-bar">
+                <input type="text" class="search-input" id="searchInput" placeholder="Поиск...">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+
+        <div id="mainContent">
+            <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-text">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" id="fabBtn" style="display:none;">+</button>
+    
+    <div class="fab-menu" id="fabMenu">
+        <div class="fab-menu-item" onclick="openAddContainerModal()">📦 Контейнер</div>
+        <div class="fab-menu-item" onclick="openAddItemModal()">📌 Предмет</div>
+    </div>
+
+    <!-- МОДАЛКА ДОБАВЛЕНИЯ КОНТЕЙНЕРА -->
+    <div class="modal" id="addContainerModal">
+        <div class="modal-content">
+            <div class="modal-header">Новый контейнер</div>
+            <form id="addContainerForm">
+                <div class="form-group">
+                    <label class="form-label">Название *</label>
+                    <input type="text" class="form-input" id="containerName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Фото (рекомендуется до 500 КБ)</label>
+                    <input type="file" class="photo-upload" id="containerPhoto" accept="image/*">
+                    <div class="photo-upload-btn" onclick="document.getElementById('containerPhoto').click()">
+                        📷 Добавить фото
+                    </div>
+                    <img id="containerPhotoPreview" class="photo-preview" style="display:none;">
+                </div>
+                <button type="submit" class="btn">Создать</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addContainerModal')">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ДОБАВЛЕНИЯ ПРЕДМЕТА -->
+    <div class="modal" id="addItemModal">
+        <div class="modal-content">
+            <div class="modal-header">Новый предмет</div>
+            <form id="addItemForm">
+                <div class="form-group">
+                    <label class="form-label">Название *</label>
+                    <input type="text" class="form-input" id="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Количество *</label>
+                    <input type="number" class="form-input" id="itemQuantity" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <select class="form-select" id="itemCategory">
+                        <option value="">Без категории</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Фото (рекомендуется до 500 КБ)</label>
+                    <input type="file" class="photo-upload" id="itemPhoto" accept="image/*">
+                    <div class="photo-upload-btn" onclick="document.getElementById('itemPhoto').click()">
+                        📷 Добавить фото
+                    </div>
+                    <img id="itemPhotoPreview" class="photo-preview" style="display:none;">
+                </div>
+                <button type="submit" class="btn">Создать</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('addItemModal')">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА КАТЕГОРИЙ -->
+    <div class="modal" id="categoriesModal">
+        <div class="modal-content">
+            <div class="modal-header">Категории</div>
+            <div id="categoriesList"></div>
+            <button class="btn btn-secondary" onclick="closeModal('categoriesModal')">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА РЕДАКТИРОВАНИЯ -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header" id="editModalTitle">Редактировать</div>
+            <form id="editForm">
+                <div id="editFormContent"></div>
+                <button type="submit" class="btn">Сохранить</button>
+                <button type="button" class="btn btn-danger" id="deleteBtn">Удалить</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Отмена</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+let state = {
+    containers: [],
+    items: [],
+    categories: [],
+    currentContainer: null,
+    viewMode: 'main',
+    editingObject: null
+};
+
+// ПРЕДУСТАНОВЛЕННЫЕ КАТЕГОРИИ
+const DEFAULT_CATEGORIES = [
+    { id: 'cat1', name: 'Инструменты', icon: '🔧', order: 0 },
+    { id: 'cat2', name: 'Канцелярия', icon: '📝', order: 1 },
+    { id: 'cat3', name: 'Бытовые вещи', icon: '🏠', order: 2 },
+    { id: 'cat4', name: 'Электроника', icon: '⚡', order: 3 },
+    { id: 'cat5', name: 'Одежда', icon: '👕', order: 4 }
+];
+
+// ИНИЦИАЛИЗАЦИЯ
+function init() {
+    loadFromStorage();
+    updateStorageIndicator();
+    setupEventListeners();
+    setupOnboarding();
+    
+    // Показываем онбординг только при первом запуске
+    if (!localStorage.getItem('skladito_onboarding_done')) {
+        showOnboarding();
+    } else {
+        renderMain();
+    }
+}
+
+// ОНБОРДИНГ
+let currentSlide = 0;
+const totalSlides = 3;
+
+function showOnboarding() {
+    document.getElementById('onboarding').classList.add('active');
+    currentSlide = 0;
+    updateOnboardingUI();
+}
+
+function setupOnboarding() {
+    document.getElementById('onboardingBtn').addEventListener('click', nextSlide);
+    document.getElementById('onboardingSkip').addEventListener('click', finishOnboarding);
+    
+    // Свайп поддержка
+    const slides = document.getElementById('onboardingSlides');
+    let startX = 0;
+    
+    slides.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+    });
+    
+    slides.addEventListener('touchend', (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const diff = startX - endX;
+        
+        if (Math.abs(diff) > 50) {
+            if (diff > 0 && currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateOnboardingUI();
+            } else if (diff < 0 && currentSlide > 0) {
+                currentSlide--;
+                updateOnboardingUI();
+            }
+        }
+    });
+}
+
+function nextSlide() {
+    if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateOnboardingUI();
+    } else {
+        finishOnboarding();
+    }
+}
+
+function updateOnboardingUI() {
+    // Скролл к слайду
+    const slides = document.getElementById('onboardingSlides');
+    slides.scrollTo({ left: currentSlide * window.innerWidth, behavior: 'smooth' });
+    
+    // Обновляем точки
+    document.querySelectorAll('.onboarding-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentSlide);
+    });
+    
+    // Обновляем кнопку
+    const btn = document.getElementById('onboardingBtn');
+    btn.textContent = currentSlide === totalSlides - 1 ? 'Начать' : 'Далее';
+}
+
+function finishOnboarding() {
+    localStorage.setItem('skladito_onboarding_done', 'true');
+    document.getElementById('onboarding').classList.remove('active');
+    renderMain();
+}
+
+// ЗАГРУЗКА ИЗ LOCALSTORAGE
+function loadFromStorage() {
+    try {
+        state.containers = JSON.parse(localStorage.getItem('skladito_containers') || '[]');
+        state.items = JSON.parse(localStorage.getItem('skladito_items') || '[]');
+        state.categories = JSON.parse(localStorage.getItem('skladito_categories') || '[]');
+        
+        if (state.categories.length === 0) {
+            state.categories = DEFAULT_CATEGORIES;
+            saveToStorage();
+        }
+        
+        updateStatus('✅ Данные загружены');
+    } catch (error) {
+        console.error('Ошибка загрузки:', error);
+        updateStatus('❌ Ошибка загрузки');
+    }
+}
+
+// СОХРАНЕНИЕ В LOCALSTORAGE
+function saveToStorage() {
+    try {
+        localStorage.setItem('skladito_containers', JSON.stringify(state.containers));
+        localStorage.setItem('skladito_items', JSON.stringify(state.items));
+        localStorage.setItem('skladito_categories', JSON.stringify(state.categories));
+        localStorage.setItem('skladito_version', '2.0');
+        updateStorageIndicator();
+        updateStatus('✅ Сохранено');
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        updateStatus('❌ Ошибка сохранения');
+        
+        if (error.name === 'QuotaExceededError') {
+            alert('Превышен лимит хранилища! Удалите старые данные или фото.');
+        }
+    }
+}
+
+// ИНДИКАТОР ХРАНИЛИЩА
+function updateStorageIndicator() {
+    const usage = getStorageUsage();
+    document.getElementById('burgerStorageUsed').textContent = usage.usedMB + ' МБ';
+    
+    const fill = document.getElementById('burgerStorageFill');
+    fill.style.width = usage.percent + '%';
+    
+    fill.className = 'storage-fill';
+    if (usage.percent > 80) fill.classList.add('danger');
+    else if (usage.percent > 60) fill.classList.add('warning');
+    
+    if (usage.percent > 80) {
+        updateStatus('⚠️ Хранилище заполнено на ' + usage.percent + '%');
+    }
+}
+
+function getStorageUsage() {
+    let total = 0;
+    for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key) && key.startsWith('skladito_')) {
+            total += localStorage[key].length + key.length;
+        }
+    }
+    return {
+        used: total,
+        usedMB: (total / 1024 / 1024).toFixed(2),
+        percent: Math.min(100, Math.round((total / (5 * 1024 * 1024)) * 100))
+    };
+}
+
+// БУРГЕР-МЕНЮ
+function openBurgerMenu() {
+    document.getElementById('burgerMenu').classList.add('active');
+    document.getElementById('burgerOverlay').classList.add('active');
+    updateStorageIndicator();
+}
+
+function closeBurgerMenu() {
+    document.getElementById('burgerMenu').classList.remove('active');
+    document.getElementById('burgerOverlay').classList.remove('active');
+}
+
+// СЖАТИЕ ИЗОБРАЖЕНИЙ
+async function compressImage(file, maxSizeKB = 500) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                const maxDimension = 1024;
+                if (width > maxDimension || height > maxDimension) {
+                    if (width > height) {
+                        height = (height / width) * maxDimension;
+                        width = maxDimension;
+                    } else {
+                        width = (width / height) * maxDimension;
+                        height = maxDimension;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                let quality = 0.8;
+                let result = canvas.toDataURL('image/jpeg', quality);
+                
+                while (result.length > maxSizeKB * 1024 && quality > 0.1) {
+                    quality -= 0.1;
+                    result = canvas.toDataURL('image/jpeg', quality);
+                }
+                
+                resolve(result);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// ЭКСПОРТ ДАННЫХ
+function exportData() {
+    const data = {
+        version: '2.0',
+        branch: 'phone',
+        exportDate: new Date().toISOString(),
+        containers: state.containers,
+        items: state.items,
+        categories: state.categories
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json'
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `skladito-backup-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ИМПОРТ ДАННЫХ
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            if (!data.version || data.version !== '2.0') {
+                alert('Неподдерживаемая версия данных');
+                return;
+            }
+            
+            if (!confirm('Импорт заменит все текущие данные. Продолжить?')) {
+                return;
+            }
+            
+            const backup = {
+                containers: state.containers,
+                items: state.items,
+                categories: state.categories
+            };
+            localStorage.setItem('skladito_backup', JSON.stringify(backup));
+            
+            state.containers = data.containers || [];
+            state.items = data.items || [];
+            state.categories = data.categories || DEFAULT_CATEGORIES;
+            
+            saveToStorage();
+            renderMain();
+            alert('Данные успешно импортированы!');
+        } catch (error) {
+            alert('Ошибка импорта: ' + error.message);
+        }
+    };
+    reader.readAsText(file);
+    
+    event.target.value = '';
+}
+
+function updateStatus(message) {
+    document.getElementById('syncStatus').textContent = message;
+}
+
+function setupEventListeners() {
+    document.getElementById('backBtn').addEventListener('click', handleBack);
+    document.getElementById('burgerBtn').addEventListener('click', openBurgerMenu);
+    document.getElementById('fabBtn').addEventListener('click', toggleFabMenu);
+    document.getElementById('searchInput').addEventListener('input', handleSearch);
+    document.getElementById('addContainerForm').addEventListener('submit', handleAddContainer);
+    document.getElementById('addItemForm').addEventListener('submit', handleAddItem);
+    document.getElementById('editForm').addEventListener('submit', handleEdit);
+    document.getElementById('deleteBtn').addEventListener('click', handleDelete);
+    document.getElementById('containerPhoto').addEventListener('change', (e) => previewPhoto(e, 'containerPhotoPreview'));
+    document.getElementById('itemPhoto').addEventListener('change', (e) => previewPhoto(e, 'itemPhotoPreview'));
+    
+    document.addEventListener('click', (e) => {
+        const fab = document.getElementById('fabBtn');
+        const menu = document.getElementById('fabMenu');
+        if (!fab.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('active');
+        }
+    });
+}
+
+function toggleFabMenu(e) {
+    e.stopPropagation();
+    document.getElementById('fabMenu').classList.toggle('active');
+}
+
+function openAddContainerModal() {
+    document.getElementById('fabMenu').classList.remove('active');
+    openModal('addContainerModal');
+}
+
+function openAddItemModal() {
+    document.getElementById('fabMenu').classList.remove('active');
+    fillCategorySelect();
+    openModal('addItemModal');
+}
+
+function openCategoriesModal() {
+    renderCategoriesList();
+    openModal('categoriesModal');
+}
+
+function renderMain() {
+    state.viewMode = 'main';
+    state.currentContainer = null;
+    
+    document.getElementById('breadcrumbs').textContent = 'Главная';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('searchContainer').style.display = 'block';
+    document.getElementById('fabBtn').style.display = 'block';
+    
+    const rootContainers = state.containers.filter(c => !c.parent);
+    let html = '';
+    
+    if (rootContainers.length > 0) {
+        html += '<h3 style="margin:20px 0 12px 0;">Контейнеры</h3>';
+        rootContainers.forEach(c => html += renderContainerCard(c));
+    }
+    
+    if (rootContainers.length === 0 && state.items.length === 0) {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-text">Склад пуст</div>
+                <div>Нажмите + чтобы начать</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+function renderCategoriesList() {
+    let html = '<div class="category-grid">';
+    state.categories.forEach(cat => {
+        const count = state.items.filter(i => i.category === cat.id).length;
+        html += `
+            <div class="category-card" onclick="showCategoryFromList('${cat.id}')">
+                <div class="category-icon">${cat.icon}</div>
+                <div class="category-name">${cat.name}</div>
+                <div style="font-size:12px;color:#999;margin-top:4px;">${count}</div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    document.getElementById('categoriesList').innerHTML = html;
+}
+
+function showCategoryFromList(categoryId) {
+    closeModal('categoriesModal');
+    showCategory(categoryId);
+}
+
+function renderContainerCard(container) {
+    const children = state.containers.filter(c => c.parent === container.id).length;
+    const items = state.items.filter(i => i.container === container.id).length;
+    const total = children + items;
+    
+    let html = `
+        <div class="card" onclick="openContainer('${container.id}')">
+            <div class="card-header">
+                <div class="card-icon">📦</div>
+                <div class="card-title">${container.name}</div>
+                ${total > 0 ? `<div class="card-badge">${total}</div>` : ''}
+            </div>
+    `;
+    
+    if (container.photo) {
+        html += `<img src="${container.photo}" class="card-photo">`;
+    }
+    
+    html += `
+            <div class="card-info">
+                ${children > 0 ? `Контейнеров: ${children} ` : ''}
+                ${items > 0 ? `Предметов: ${items}` : ''}
+                ${total === 0 ? 'Пусто' : ''}
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+function renderItemCard(item) {
+    const category = state.categories.find(c => c.id === item.category);
+    
+    let html = `
+        <div class="card" onclick="editItem('${item.id}')">
+            <div class="card-header">
+                <div class="card-icon">${category ? category.icon : '📌'}</div>
+                <div class="card-title">${item.name}</div>
+                <div class="card-badge">×${item.quantity}</div>
+            </div>
+    `;
+    
+    if (item.photo) {
+        html += `<img src="${item.photo}" class="card-photo">`;
+    }
+    
+    if (category) {
+        html += `<div class="card-info">${category.name}</div>`;
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function openContainer(containerId) {
+    state.viewMode = 'container';
+    state.currentContainer = containerId;
+    
+    const container = state.containers.find(c => c.id === containerId);
+    if (!container) return;
+    
+    document.getElementById('breadcrumbs').textContent = getContainerPath(containerId);
+    document.getElementById('backBtn').style.display = 'block';
+    document.getElementById('searchContainer').style.display = 'none';
+    document.getElementById('fabBtn').style.display = 'block';
+    
+    const childContainers = state.containers.filter(c => c.parent === containerId);
+    const items = state.items.filter(i => i.container === containerId);
+    
+    let html = `
+        <div class="card" onclick="editContainer('${containerId}')">
+            <div class="card-header">
+                <div class="card-icon">📦</div>
+                <div class="card-title">${container.name}</div>
+            </div>
+            ${container.photo ? `<img src="${container.photo}" class="card-photo">` : ''}
+            <div class="card-info">Нажмите для редактирования</div>
+        </div>
+    `;
+    
+    if (childContainers.length > 0) {
+        html += '<h3 style="margin:20px 0 12px 0;">Контейнеры</h3>';
+        childContainers.forEach(c => html += renderContainerCard(c));
+    }
+    
+    if (items.length > 0) {
+        html += '<h3 style="margin:20px 0 12px 0;">Предметы</h3>';
+        items.forEach(item => html += renderItemCard(item));
+    }
+    
+    if (childContainers.length === 0 && items.length === 0) {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-text">Контейнер пуст</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+function showCategory(categoryId) {
+    state.viewMode = 'category';
+    const category = state.categories.find(c => c.id === categoryId);
+    if (!category) return;
+    
+    document.getElementById('breadcrumbs').textContent = `Категория: ${category.name}`;
+    document.getElementById('backBtn').style.display = 'block';
+    document.getElementById('searchContainer').style.display = 'none';
+    document.getElementById('fabBtn').style.display = 'none';
+    
+    const items = state.items.filter(i => i.category === categoryId);
+    
+    let html = `<h2 style="margin-bottom:20px;">${category.icon} ${category.name}</h2>`;
+    
+    if (items.length > 0) {
+        items.forEach(item => {
+            const container = state.containers.find(c => c.id === item.container);
+            let itemHtml = renderItemCard(item);
+            if (container) {
+                const path = getContainerPath(container.id);
+                itemHtml = itemHtml.replace('</div>', `<div class="card-info">📍 ${path}</div></div>`);
+            }
+            html += itemHtml;
+        });
+    } else {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-text">Нет предметов</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+function handleSearch(e) {
+    const query = e.target.value.toLowerCase().trim();
+    
+    if (!query) {
+        renderMain();
+        return;
+    }
+    
+    state.viewMode = 'search';
+    document.getElementById('backBtn').style.display = 'none';
+    document.getElementById('fabBtn').style.display = 'none';
+    
+    const foundContainers = state.containers.filter(c => c.name.toLowerCase().includes(query));
+    const foundItems = state.items.filter(i => i.name.toLowerCase().includes(query));
+    
+    let html = `<h3 style="margin-bottom:12px;">Результаты: "${query}"</h3>`;
+    
+    if (foundContainers.length > 0) {
+        html += '<h4 style="margin:20px 0 12px 0;">Контейнеры</h4>';
+        foundContainers.forEach(c => html += renderContainerCard(c));
+    }
+    
+    if (foundItems.length > 0) {
+        html += '<h4 style="margin:20px 0 12px 0;">Предметы</h4>';
+        foundItems.forEach(item => html += renderItemCard(item));
+    }
+    
+    if (foundContainers.length === 0 && foundItems.length === 0) {
+        html += `
+            <div class="empty-state">
+                <div class="empty-state-icon">🔍</div>
+                <div class="empty-state-text">Ничего не найдено</div>
+            </div>
+        `;
+    }
+    
+    document.getElementById('mainContent').innerHTML = html;
+}
+
+function handleBack() {
+    if (state.viewMode === 'container' && state.currentContainer) {
+        const container = state.containers.find(c => c.id === state.currentContainer);
+        if (container && container.parent) {
+            openContainer(container.parent);
+        } else {
+            renderMain();
+        }
+    } else {
+        renderMain();
+    }
+}
+
+function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+    
+    if (modalId === 'addContainerModal') {
+        document.getElementById('addContainerForm').reset();
+        document.getElementById('containerPhotoPreview').style.display = 'none';
+    }
+    if (modalId === 'addItemModal') {
+        document.getElementById('addItemForm').reset();
+        document.getElementById('itemPhotoPreview').style.display = 'none';
+    }
+}
+
+function fillCategorySelect() {
+    const select = document.getElementById('itemCategory');
+    select.innerHTML = '<option value="">Без категории</option>';
+    state.categories.forEach(cat => {
+        select.innerHTML += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+    });
+}
+
+async function previewPhoto(e, previewId) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const compressed = await compressImage(file);
+    const img = document.getElementById(previewId);
+    img.src = compressed;
+    img.style.display = 'block';
+}
+
+async function handleAddContainer(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('containerName').value;
+    const photoFile = document.getElementById('containerPhoto').files[0];
+    
+    let photo = null;
+    if (photoFile) {
+        photo = await compressImage(photoFile);
+    }
+    
+    const container = {
+        id: 'c' + Date.now(),
+        name: name,
+        photo: photo,
+        parent: state.currentContainer,
+        created: new Date().toISOString()
+    };
+    
+    state.containers.push(container);
+    saveToStorage();
+    closeModal('addContainerModal');
+    
+    if (state.currentContainer) {
+        openContainer(state.currentContainer);
+    } else {
+        renderMain();
+    }
+}
+
+async function handleAddItem(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('itemName').value;
+    const quantity = parseInt(document.getElementById('itemQuantity').value);
+    const category = document.getElementById('itemCategory').value || null;
+    const photoFile = document.getElementById('itemPhoto').files[0];
+    
+    let photo = null;
+    if (photoFile) {
+        photo = await compressImage(photoFile);
+    }
+    
+    const item = {
+        id: 'i' + Date.now(),
+        name: name,
+        quantity: quantity,
+        category: category,
+        photo: photo,
+        container: state.currentContainer,
+        created: new Date().toISOString()
+    };
+    
+    state.items.push(item);
+    saveToStorage();
+    closeModal('addItemModal');
+    openContainer(state.currentContainer);
+}
+
+function editContainer(containerId) {
+    const container = state.containers.find(c => c.id === containerId);
+    if (!container) return;
+    
+    state.editingObject = { type: 'container', data: container };
+    
+    document.getElementById('editModalTitle').textContent = 'Редактировать контейнер';
+    
+    let html = `
+        <input type="hidden" id="editType" value="container">
+        <input type="hidden" id="editId" value="${container.id}">
+        <div class="form-group">
+            <label class="form-label">Название</label>
+            <input type="text" class="form-input" id="editName" value="${container.name}" required>
+        </div>
+    `;
+    
+    if (container.photo) {
+        html += `
+            <div class="form-group">
+                <label class="form-label">Фото</label>
+                <img src="${container.photo}" class="photo-preview" id="editPhotoPreview">
+                <div class="photo-actions">
+                    <button type="button" class="btn-small" onclick="document.getElementById('editPhotoInput').click()">Заменить</button>
+                    <button type="button" class="btn-small btn-danger" onclick="deletePhoto()">Удалить</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="form-group">
+                <label class="form-label">Фото</label>
+                <div class="photo-upload-btn" onclick="document.getElementById('editPhotoInput').click()">
+                    📷 Добавить фото
+                </div>
+                <img id="editPhotoPreview" class="photo-preview" style="display:none;">
+            </div>
+        `;
+    }
+    
+    html += '<input type="file" class="photo-upload" id="editPhotoInput" accept="image/*">';
+    
+    document.getElementById('editFormContent').innerHTML = html;
+    document.getElementById('editPhotoInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const compressed = await compressImage(file);
+            const img = document.getElementById('editPhotoPreview');
+            img.src = compressed;
+            img.style.display = 'block';
+        }
+    });
+    openModal('editModal');
+}
+
+function editItem(itemId) {
+    const item = state.items.find(i => i.id === itemId);
+    if (!item) return;
+    
+    state.editingObject = { type: 'item', data: item };
+    
+    document.getElementById('editModalTitle').textContent = 'Редактировать предмет';
+    
+    let html = `
+        <input type="hidden" id="editType" value="item">
+        <input type="hidden" id="editId" value="${item.id}">
+        <div class="form-group">
+            <label class="form-label">Название</label>
+            <input type="text" class="form-input" id="editName" value="${item.name}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Количество</label>
+            <input type="number" class="form-input" id="editQuantity" value="${item.quantity}" min="1" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Категория</label>
+            <select class="form-select" id="editCategory">
+                <option value="">Без категории</option>
+                ${state.categories.map(cat => 
+                    `<option value="${cat.id}" ${cat.id === item.category ? 'selected' : ''}>${cat.icon} ${cat.name}</option>`
+                ).join('')}
+            </select>
+        </div>
+    `;
+    
+    if (item.photo) {
+        html += `
+            <div class="form-group">
+                <label class="form-label">Фото</label>
+                <img src="${item.photo}" class="photo-preview" id="editPhotoPreview">
+                <div class="photo-actions">
+                    <button type="button" class="btn-small" onclick="document.getElementById('editPhotoInput').click()">Заменить</button>
+                    <button type="button" class="btn-small btn-danger" onclick="deletePhoto()">Удалить</button>
+                </div>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="form-group">
+                <label class="form-label">Фото</label>
+                <div class="photo-upload-btn" onclick="document.getElementById('editPhotoInput').click()">
+                    📷 Добавить фото
+                </div>
+                <img id="editPhotoPreview" class="photo-preview" style="display:none;">
+            </div>
+        `;
+    }
+    
+    html += '<input type="file" class="photo-upload" id="editPhotoInput" accept="image/*">';
+    
+    document.getElementById('editFormContent').innerHTML = html;
+    document.getElementById('editPhotoInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const compressed = await compressImage(file);
+            const img = document.getElementById('editPhotoPreview');
+            img.src = compressed;
+            img.style.display = 'block';
+        }
+    });
+    openModal('editModal');
+}
+
+function deletePhoto() {
+    const preview = document.getElementById('editPhotoPreview');
+    preview.style.display = 'none';
+    preview.src = '';
+    state.editingObject.data.photo = null;
+}
+
+async function handleEdit(e) {
+    e.preventDefault();
+    
+    const type = document.getElementById('editType').value;
+    const id = document.getElementById('editId').value;
+    const name = document.getElementById('editName').value;
+    
+    const photoInput = document.getElementById('editPhotoInput');
+    let newPhoto = null;
+    if (photoInput.files[0]) {
+        newPhoto = await compressImage(photoInput.files[0]);
+    }
+    
+    if (type === 'container') {
+        const container = state.containers.find(c => c.id === id);
+        container.name = name;
+        if (newPhoto) container.photo = newPhoto;
+        if (state.editingObject.data.photo === null) container.photo = null;
+    } else {
+        const item = state.items.find(i => i.id === id);
+        item.name = name;
+        item.quantity = parseInt(document.getElementById('editQuantity').value);
+        item.category = document.getElementById('editCategory').value || null;
+        if (newPhoto) item.photo = newPhoto;
+        if (state.editingObject.data.photo === null) item.photo = null;
+    }
+    
+    saveToStorage();
+    closeModal('editModal');
+    
+    if (state.viewMode === 'container') {
+        openContainer(state.currentContainer);
+    } else {
+        renderMain();
+    }
+}
+
+function handleDelete() {
+    if (!confirm('Удалить? Это действие нельзя отменить.')) return;
+    
+    const type = document.getElementById('editType').value;
+    const id = document.getElementById('editId').value;
+    
+    if (type === 'container') {
+        const childCount = state.containers.filter(c => c.parent === id).length;
+        const itemCount = state.items.filter(i => i.container === id).length;
+        
+        if (childCount > 0 || itemCount > 0) {
+            alert(`Контейнер не пустой! Внутри ${childCount + itemCount} объектов.`);
+            return;
+        }
+        
+        state.containers = state.containers.filter(c => c.id !== id);
+    } else {
+        state.items = state.items.filter(i => i.id !== id);
+    }
+    
+    saveToStorage();
+    closeModal('editModal');
+    
+    if (state.viewMode === 'container') {
+        openContainer(state.currentContainer);
+    } else {
+        renderMain();
+    }
+}
+
+function getContainerPath(containerId) {
+    const container = state.containers.find(c => c.id === containerId);
+    if (!container) return '';
+    
+    let path = container.name;
+    let current = container;
+    
+    while (current.parent) {
+        const parent = state.containers.find(c => c.id === current.parent);
+        if (!parent) break;
+        path = parent.name + ' > ' + path;
+        current = parent;
+    }
+    
+    return 'Главная > ' + path;
+}
+
+// ЗАПУСК
+init();
+    </script>
+</body>
+</html>
