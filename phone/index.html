@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>SKLADITO Phone v2.3.0</title>
+    <title>SKLADITO Phone v2.6.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
@@ -354,6 +354,16 @@ body {
 .card-icon {
     font-size: 32px;
     margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.card-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-right: 12px;
+    flex-shrink: 0;
 }
 
 .card-title {
@@ -932,7 +942,7 @@ body {
         <div class="header-content">
             <button class="back-btn" id="backBtn" style="display:none;">←</button>
             <div class="header-title">
-                <h1>📱 SKLADITO Phone v2.3.0</h1>
+                <h1>📱 SKLADITO Phone v2.6.0</h1>
                 <div class="breadcrumbs" id="breadcrumbs">Главная</div>
                 <div class="sync-status" id="syncStatus">Локальное хранилище</div>
             </div>
@@ -977,6 +987,22 @@ body {
                 <div class="burger-item-text">
                     <div class="burger-item-title">Просмотр категорий</div>
                     <div class="burger-item-subtitle">Все категории предметов</div>
+                </div>
+            </div>
+
+            <div class="burger-item" onclick="openShoppingList(); closeBurgerMenu();">
+                <div class="burger-item-icon">🛒</div>
+                <div class="burger-item-text">
+                    <div class="burger-item-title">Список покупок</div>
+                    <div class="burger-item-subtitle" id="shoppingBadge">Что нужно докупить</div>
+                </div>
+            </div>
+
+            <div class="burger-item" onclick="openWriteOff(); closeBurgerMenu();">
+                <div class="burger-item-icon">📝</div>
+                <div class="burger-item-text">
+                    <div class="burger-item-title">Списать предмет</div>
+                    <div class="burger-item-subtitle">Уменьшить количество</div>
                 </div>
             </div>
 
@@ -1055,13 +1081,27 @@ body {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Количество *</label>
-                    <input type="number" class="form-input" id="itemQuantity" min="1" value="1" required>
+                    <input type="number" class="form-input" id="itemQuantity" min="0" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Мин. количество <span style="color:#999;font-weight:400;">(для списка покупок)</span></label>
+                    <input type="number" class="form-input" id="itemMinQuantity" min="0" value="0">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Категория</label>
-                    <select class="form-select" id="itemCategory">
-                        <option value="">Без категории</option>
-                    </select>
+                    <div style="display:flex;gap:8px;">
+                        <select class="form-select" id="itemCategory" style="flex:1;">
+                            <option value="">Без категории</option>
+                        </select>
+                        <button type="button" class="btn btn-small" onclick="showNewCategoryInput('item')" style="width:auto;padding:10px 14px;margin:0;white-space:nowrap;">+ Новая</button>
+                    </div>
+                    <div id="newCategoryItem" style="display:none;margin-top:8px;">
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" class="form-input" id="newCategoryNameItem" placeholder="Название категории" style="flex:1;">
+                            <button type="button" class="btn btn-small" onclick="addNewCategory('item')" style="width:auto;padding:10px 14px;margin:0;">✓</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="hideNewCategoryInput('item')" style="width:auto;padding:10px 14px;margin:0;">✕</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Фото (рекомендуется до 500 КБ)</label>
@@ -1082,6 +1122,12 @@ body {
         <div class="modal-content">
             <div class="modal-header">Категории</div>
             <div id="categoriesList"></div>
+            <div style="margin-top:15px;">
+                <div style="display:flex;gap:8px;">
+                    <input type="text" class="form-input" id="newCategoryNameModal" placeholder="Новая категория">
+                    <button class="btn btn-small" onclick="addCategoryFromModal()" style="width:auto;padding:10px 14px;margin:0;">+ Добавить</button>
+                </div>
+            </div>
             <button class="btn btn-secondary" onclick="closeModal('categoriesModal')">Закрыть</button>
         </div>
     </div>
@@ -1179,6 +1225,43 @@ body {
             </div>
             <div id="scanResult"></div>
             <button class="btn btn-secondary" style="margin-top:16px;" onclick="closeScannerModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА СПИСОК ПОКУПОК -->
+    <div class="modal" id="shoppingModal">
+        <div class="modal-content">
+            <div class="modal-header">🛒 Список покупок</div>
+            <div id="shoppingList"></div>
+            <button class="btn" onclick="shareShoppingList()" style="margin-top:15px;">📤 Поделиться списком</button>
+            <button class="btn btn-secondary" onclick="closeModal('shoppingModal')">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА СПИСАНИЯ -->
+    <div class="modal" id="writeOffModal">
+        <div class="modal-content">
+            <div class="modal-header">📝 Списать предмет</div>
+            <div class="form-group">
+                <label class="form-label">Поиск предмета</label>
+                <input type="text" class="form-input" id="writeOffSearch" placeholder="Начните вводить название..." oninput="searchWriteOff()">
+            </div>
+            <div id="writeOffResults" style="max-height:400px;overflow-y:auto;"></div>
+            <button class="btn btn-secondary" onclick="closeModal('writeOffModal')">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ СПИСАНИЯ -->
+    <div class="modal" id="writeOffConfirmModal">
+        <div class="modal-content">
+            <div class="modal-header">Списать?</div>
+            <div id="writeOffConfirmContent"></div>
+            <div class="form-group" style="margin-top:15px;">
+                <label class="form-label">Сколько списать?</label>
+                <input type="number" class="form-input" id="writeOffAmount" min="1" value="1" style="width:100px;text-align:center;font-size:24px;font-weight:700;">
+            </div>
+            <button class="btn btn-danger" onclick="confirmWriteOff()">Списать</button>
+            <button class="btn btn-secondary" onclick="closeModal('writeOffConfirmModal')">Отмена</button>
         </div>
     </div>
 
@@ -1517,6 +1600,7 @@ function openBurgerMenu() {
     document.getElementById('burgerMenu').classList.add('active');
     document.getElementById('burgerOverlay').classList.add('active');
     updateStorageIndicator();
+    updateShoppingBadge();
 }
 
 function closeBurgerMenu() {
@@ -1571,7 +1655,7 @@ async function compressImage(file, maxSizeKB = 500) {
 // ЭКСПОРТ ДАННЫХ
 function exportData() {
     const data = {
-        version: '2.3',
+        version: '2.6',
         branch: 'phone',
         exportDate: new Date().toISOString(),
         containers: state.containers,
@@ -1727,18 +1811,24 @@ function renderMain() {
 }
 
 function renderCategoriesList() {
-    let html = '<div class="category-grid">';
+    let html = '';
     state.categories.forEach(cat => {
         const count = state.items.filter(i => i.category === cat.id).length;
         html += `
-            <div class="category-card" onclick="showCategoryFromList('${cat.id}')">
-                <div class="category-icon">${cat.icon}</div>
-                <div class="category-name">${cat.name}</div>
-                <div style="font-size:12px;color:#999;margin-top:4px;">${count}</div>
+            <div style="display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">
+                <span style="font-size:28px;margin-right:12px;cursor:pointer;" onclick="changeCategoryIcon('${cat.id}')" title="Сменить иконку">${cat.icon}</span>
+                <div style="flex:1;cursor:pointer;" onclick="showCategoryFromList('${cat.id}')">
+                    <div style="font-weight:600;">${cat.name}</div>
+                    <div style="font-size:12px;color:#999;">Предметов: ${count}</div>
+                </div>
+                <button onclick="renameCategoryPrompt('${cat.id}')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:5px;" title="Переименовать">✏️</button>
+                <button onclick="deleteCategory('${cat.id}')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:5px;" title="Удалить">🗑️</button>
             </div>
         `;
     });
-    html += '</div>';
+    if (state.categories.length === 0) {
+        html = '<div style="text-align:center;color:#999;padding:20px;">Нет категорий</div>';
+    }
     document.getElementById('categoriesList').innerHTML = html;
 }
 
@@ -1753,20 +1843,17 @@ function renderContainerCard(container) {
     const total = children + items;
     const num = container.number || '?';
     
+    const thumb = container.photo 
+        ? `<img src="${container.photo}" class="card-thumb">` 
+        : `<div class="card-icon">📦</div>`;
+    
     let html = `
         <div class="card" onclick="openContainer('${container.id}')">
             <div class="card-header">
-                <div class="card-icon">📦</div>
+                ${thumb}
                 <div class="card-title"><span style="color:#667eea;font-family:'Courier New',monospace;font-weight:700;">#${num}</span> ${container.name}</div>
                 ${total > 0 ? `<div class="card-badge">${total}</div>` : ''}
             </div>
-    `;
-    
-    if (container.photo) {
-        html += `<img src="${container.photo}" class="card-photo">`;
-    }
-    
-    html += `
             <div class="card-info">
                 ${children > 0 ? `Контейнеров: ${children} ` : ''}
                 ${items > 0 ? `Предметов: ${items}` : ''}
@@ -1780,23 +1867,25 @@ function renderContainerCard(container) {
 
 function renderItemCard(item) {
     const category = state.categories.find(c => c.id === item.category);
+    const belowMin = item.minQuantity > 0 && item.quantity < item.minQuantity;
+    
+    const thumb = item.photo 
+        ? `<img src="${item.photo}" class="card-thumb">` 
+        : `<div class="card-icon">${category ? category.icon : '📌'}</div>`;
     
     let html = `
-        <div class="card" onclick="editItem('${item.id}')">
+        <div class="card" onclick="editItem('${item.id}')" ${belowMin ? 'style="border-left:4px solid #dc3545;"' : ''}>
             <div class="card-header">
-                <div class="card-icon">${category ? category.icon : '📌'}</div>
+                ${thumb}
                 <div class="card-title">${item.name}</div>
-                <div class="card-badge">×${item.quantity}</div>
+                <div class="card-badge" ${belowMin ? 'style="background:#dc3545;"' : ''}>×${item.quantity}</div>
             </div>
     `;
     
-    if (item.photo) {
-        html += `<img src="${item.photo}" class="card-photo">`;
-    }
-    
-    if (category) {
-        html += `<div class="card-info">${category.name}</div>`;
-    }
+    let info = [];
+    if (category) info.push(`${category.icon} ${category.name}`);
+    if (belowMin) info.push(`<span style="color:#dc3545;font-weight:600;">⚠️ Нужно купить (мин: ${item.minQuantity})</span>`);
+    if (info.length > 0) html += `<div class="card-info">${info.join(' · ')}</div>`;
     
     html += '</div>';
     return html;
@@ -1958,12 +2047,173 @@ function closeModal(modalId) {
     }
 }
 
-function fillCategorySelect() {
-    const select = document.getElementById('itemCategory');
+function fillCategorySelect(selectId) {
+    selectId = selectId || 'itemCategory';
+    const select = document.getElementById(selectId);
+    const currentVal = select.value;
     select.innerHTML = '<option value="">Без категории</option>';
     state.categories.forEach(cat => {
-        select.innerHTML += `<option value="${cat.id}">${cat.icon} ${cat.name}</option>`;
+        select.innerHTML += `<option value="${cat.id}" ${cat.id === currentVal ? 'selected' : ''}>${cat.icon} ${cat.name}</option>`;
     });
+}
+
+// Новая категория из формы предмета
+function showNewCategoryInput(context) {
+    document.getElementById('newCategory' + (context === 'item' ? 'Item' : 'Edit')).style.display = 'block';
+    document.getElementById('newCategoryName' + (context === 'item' ? 'Item' : 'Edit')).focus();
+}
+
+function hideNewCategoryInput(context) {
+    document.getElementById('newCategory' + (context === 'item' ? 'Item' : 'Edit')).style.display = 'none';
+    document.getElementById('newCategoryName' + (context === 'item' ? 'Item' : 'Edit')).value = '';
+}
+
+function addNewCategory(context) {
+    const inputId = 'newCategoryName' + (context === 'item' ? 'Item' : 'Edit');
+    const selectId = context === 'item' ? 'itemCategory' : 'editCategory';
+    const name = document.getElementById(inputId).value.trim();
+    
+    if (!name) {
+        showToast('Введите название категории');
+        return;
+    }
+    
+    const newCat = {
+        id: 'cat' + Date.now(),
+        name: name,
+        icon: '📂',
+        order: state.categories.length
+    };
+    
+    state.categories.push(newCat);
+    saveToStorage();
+    
+    fillCategorySelect(selectId);
+    document.getElementById(selectId).value = newCat.id;
+    
+    hideNewCategoryInput(context);
+    showToast(`Категория "${name}" добавлена!`);
+}
+
+// Категории из модалки управления
+function addCategoryFromModal() {
+    const name = document.getElementById('newCategoryNameModal').value.trim();
+    if (!name) {
+        showToast('Введите название');
+        return;
+    }
+    
+    const newCat = {
+        id: 'cat' + Date.now(),
+        name: name,
+        icon: '📂',
+        order: state.categories.length
+    };
+    
+    state.categories.push(newCat);
+    saveToStorage();
+    document.getElementById('newCategoryNameModal').value = '';
+    renderCategoriesList();
+    showToast(`Категория "${name}" добавлена!`);
+}
+
+function deleteCategory(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    
+    const itemCount = state.items.filter(i => i.category === catId).length;
+    const msg = itemCount > 0 
+        ? `Удалить категорию "${cat.name}"? У ${itemCount} предметов будет снята категория.` 
+        : `Удалить категорию "${cat.name}"?`;
+    
+    if (!confirm(msg)) return;
+    
+    // Снимаем категорию с предметов
+    state.items.forEach(item => {
+        if (item.category === catId) item.category = null;
+    });
+    
+    state.categories = state.categories.filter(c => c.id !== catId);
+    saveToStorage();
+    renderCategoriesList();
+    showToast('Категория удалена');
+}
+
+function renameCategoryPrompt(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    
+    const newName = prompt('Новое название:', cat.name);
+    if (!newName || !newName.trim()) return;
+    
+    cat.name = newName.trim();
+    saveToStorage();
+    renderCategoriesList();
+    showToast('Категория переименована');
+}
+
+function changeCategoryIcon(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    
+    const icons = ['📂','🔧','📝','🏠','⚡','👕','🎮','🍳','💊','🧴','🧹','📚','🎨','🏋️','🔑','🪴','🧸','🎁','🛠️','🧲','📦','🥫','🧻','💡','🔌','🧤','👟','🎒','🧳','📷'];
+    
+    let html = '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;">';
+    icons.forEach(icon => {
+        html += `<span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px;${icon === cat.icon ? 'background:#667eea33;' : ''}" onclick="setCategoryIcon('${catId}','${icon}')">${icon}</span>`;
+    });
+    html += '</div><div style="margin-top:10px;"><input type="text" class="form-input" id="customIconInput" placeholder="Или вставьте свой эмодзи" maxlength="2" style="text-align:center;font-size:24px;width:80px;display:inline-block;"><button class="btn btn-small" onclick="setCategoryIcon(\'${catId}\', document.getElementById(\'customIconInput\').value)" style="width:auto;padding:8px 14px;margin:0 0 0 8px;">OK</button></div>';
+    
+    document.getElementById('categoriesList').innerHTML = html;
+}
+
+function setCategoryIcon(catId, icon) {
+    if (!icon) return;
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    
+    cat.icon = icon;
+    saveToStorage();
+    renderCategoriesList();
+    showToast('Иконка изменена');
+}
+
+function changeCategoryIcon(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    
+    const icons = ['📂','🔧','📝','🏠','⚡','👕','🍽️','💊','🧹','🎮','📚','🔑','🧰','🎒','🧸','🪴','🏋️','🎨','🧪','📦','🛠️','💡','🔌','🧲','🪜'];
+    
+    let html = '<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px;">';
+    icons.forEach(icon => {
+        html += `<span style="font-size:32px;cursor:pointer;padding:8px;border-radius:8px;${icon === cat.icon ? 'background:#667eea22;' : ''}" onclick="setCategoryIcon('${catId}','${icon}')">${icon}</span>`;
+    });
+    html += '</div><div style="text-align:center;margin-top:10px;"><button class="btn btn-secondary btn-small" onclick="customCategoryIcon(\''+catId+'\')">Ввести свой эмодзи</button></div>';
+    
+    document.getElementById('categoriesList').innerHTML = html;
+}
+
+function setCategoryIcon(catId, icon) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    
+    cat.icon = icon;
+    saveToStorage();
+    renderCategoriesList();
+    showToast('Иконка обновлена');
+}
+
+function customCategoryIcon(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    
+    const icon = prompt('Введите эмодзи:', cat.icon);
+    if (!icon) return;
+    
+    cat.icon = icon.trim().slice(0, 2);
+    saveToStorage();
+    renderCategoriesList();
+    showToast('Иконка обновлена');
 }
 
 async function previewPhoto(e, previewId) {
@@ -2026,6 +2276,7 @@ async function handleAddItem(e) {
     
     const name = document.getElementById('itemName').value;
     const quantity = parseInt(document.getElementById('itemQuantity').value);
+    const minQuantity = parseInt(document.getElementById('itemMinQuantity').value) || 0;
     const category = document.getElementById('itemCategory').value || null;
     const photoFile = document.getElementById('itemPhoto').files[0];
     
@@ -2038,6 +2289,7 @@ async function handleAddItem(e) {
         id: 'i' + Date.now(),
         name: name,
         quantity: quantity,
+        minQuantity: minQuantity,
         category: category,
         photo: photo,
         container: state.currentContainer,
@@ -2058,6 +2310,14 @@ function editContainer(containerId) {
     
     document.getElementById('editModalTitle').textContent = 'Редактировать контейнер';
     
+    // Собираем список возможных родителей (исключаем сам контейнер и его потомков)
+    const descendants = getDescendantIds(containerId);
+    const possibleParents = state.containers.filter(c => c.id !== containerId && !descendants.includes(c.id));
+    
+    const currentParentName = container.parent 
+        ? (state.containers.find(c => c.id === container.parent)?.name || '?') 
+        : 'Главная (корень)';
+    
     let html = `
         <input type="hidden" id="editType" value="container">
         <input type="hidden" id="editId" value="${container.id}">
@@ -2068,6 +2328,15 @@ function editContainer(containerId) {
         <div class="form-group">
             <label class="form-label">Название</label>
             <input type="text" class="form-input" id="editName" value="${container.name}" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">📍 Расположение: <strong>${currentParentName}</strong></label>
+            <select class="form-select" id="editParent">
+                <option value="" ${!container.parent ? 'selected' : ''}>🏠 Главная (корень)</option>
+                ${possibleParents.map(c => 
+                    `<option value="${c.id}" ${c.id === container.parent ? 'selected' : ''}>${c.number ? '#' + c.number + ' ' : ''}${c.name} (${getContainerPath(c.id)})</option>`
+                ).join('')}
+            </select>
         </div>
     `;
     
@@ -2126,16 +2395,30 @@ function editItem(itemId) {
         </div>
         <div class="form-group">
             <label class="form-label">Количество</label>
-            <input type="number" class="form-input" id="editQuantity" value="${item.quantity}" min="1" required>
+            <input type="number" class="form-input" id="editQuantity" value="${item.quantity}" min="0" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Мин. количество <span style="color:#999;font-weight:400;">(для списка покупок)</span></label>
+            <input type="number" class="form-input" id="editMinQuantity" value="${item.minQuantity || 0}" min="0">
         </div>
         <div class="form-group">
             <label class="form-label">Категория</label>
-            <select class="form-select" id="editCategory">
-                <option value="">Без категории</option>
-                ${state.categories.map(cat => 
-                    `<option value="${cat.id}" ${cat.id === item.category ? 'selected' : ''}>${cat.icon} ${cat.name}</option>`
-                ).join('')}
-            </select>
+            <div style="display:flex;gap:8px;">
+                <select class="form-select" id="editCategory" style="flex:1;">
+                    <option value="">Без категории</option>
+                    ${state.categories.map(cat => 
+                        `<option value="${cat.id}" ${cat.id === item.category ? 'selected' : ''}>${cat.icon} ${cat.name}</option>`
+                    ).join('')}
+                </select>
+                <button type="button" class="btn btn-small" onclick="showNewCategoryInput('edit')" style="width:auto;padding:10px 14px;margin:0;white-space:nowrap;">+ Новая</button>
+            </div>
+            <div id="newCategoryEdit" style="display:none;margin-top:8px;">
+                <div style="display:flex;gap:8px;">
+                    <input type="text" class="form-input" id="newCategoryNameEdit" placeholder="Название категории" style="flex:1;">
+                    <button type="button" class="btn btn-small" onclick="addNewCategory('edit')" style="width:auto;padding:10px 14px;margin:0;">✓</button>
+                    <button type="button" class="btn btn-small btn-secondary" onclick="hideNewCategoryInput('edit')" style="width:auto;padding:10px 14px;margin:0;">✕</button>
+                </div>
+            </div>
         </div>
     `;
     
@@ -2212,12 +2495,23 @@ async function handleEdit(e) {
             container.number = newNumber;
         }
         
+        // Перемещение контейнера
+        const parentSelect = document.getElementById('editParent');
+        if (parentSelect) {
+            const newParent = parentSelect.value || null;
+            if (newParent !== container.parent) {
+                container.parent = newParent;
+                showToast('Контейнер перемещён!');
+            }
+        }
+        
         if (newPhoto) container.photo = newPhoto;
         if (state.editingObject.data.photo === null) container.photo = null;
     } else {
         const item = state.items.find(i => i.id === id);
         item.name = name;
         item.quantity = parseInt(document.getElementById('editQuantity').value);
+        item.minQuantity = parseInt(document.getElementById('editMinQuantity').value) || 0;
         item.category = document.getElementById('editCategory').value || null;
         if (newPhoto) item.photo = newPhoto;
         if (state.editingObject.data.photo === null) item.photo = null;
@@ -2261,6 +2555,16 @@ function handleDelete() {
     } else {
         renderMain();
     }
+}
+
+function getDescendantIds(containerId) {
+    let ids = [];
+    const children = state.containers.filter(c => c.parent === containerId);
+    children.forEach(child => {
+        ids.push(child.id);
+        ids = ids.concat(getDescendantIds(child.id));
+    });
+    return ids;
 }
 
 function getContainerPath(containerId) {
@@ -2574,6 +2878,195 @@ function restartScanner() {
 }
 
 // ==================== ОБНОВЛЁННЫЕ ФУНКЦИИ ====================
+
+// ==================== СПИСОК ПОКУПОК ====================
+
+function getShoppingItems() {
+    return state.items.filter(item => item.minQuantity > 0 && item.quantity < item.minQuantity);
+}
+
+function openShoppingList() {
+    const items = getShoppingItems();
+    let html = '';
+    
+    if (items.length === 0) {
+        html = '<div style="text-align:center;padding:30px;color:#999;"><div style="font-size:48px;margin-bottom:10px;">✅</div>Всё в порядке! Ничего докупать не нужно.</div>';
+    } else {
+        html += `<div style="color:#dc3545;font-weight:600;margin-bottom:15px;">Нужно докупить: ${items.length} позиций</div>`;
+        items.forEach(item => {
+            const cat = state.categories.find(c => c.id === item.category);
+            const need = item.minQuantity - item.quantity;
+            const path = getContainerPath(item.container);
+            const thumb = item.photo 
+                ? `<img src="${item.photo}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;">` 
+                : `<span style="font-size:24px;margin-right:10px;">${cat ? cat.icon : '📌'}</span>`;
+            
+            html += `
+                <div style="display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">
+                    ${thumb}
+                    <div style="flex:1;">
+                        <div style="font-weight:600;">${item.name}</div>
+                        <div style="font-size:12px;color:#888;">📍 ${path}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="color:#dc3545;font-weight:700;">+${need}</div>
+                        <div style="font-size:11px;color:#999;">есть ${item.quantity}/${item.minQuantity}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    document.getElementById('shoppingList').innerHTML = html;
+    openModal('shoppingModal');
+}
+
+function shareShoppingList() {
+    const items = getShoppingItems();
+    if (items.length === 0) {
+        showToast('Список пуст!');
+        return;
+    }
+    
+    let text = '🛒 Список покупок SKLADITO:\n\n';
+    items.forEach(item => {
+        const need = item.minQuantity - item.quantity;
+        text += `☐ ${item.name} — ${need} шт.\n`;
+    });
+    text += `\nВсего: ${items.length} позиций`;
+    
+    if (navigator.share) {
+        navigator.share({ text }).catch(() => {
+            navigator.clipboard.writeText(text);
+            showToast('Скопировано!');
+        });
+    } else {
+        navigator.clipboard.writeText(text);
+        showToast('Список скопирован!');
+    }
+}
+
+// Обновить бейдж в бургер-меню
+function updateShoppingBadge() {
+    const count = getShoppingItems().length;
+    const badge = document.getElementById('shoppingBadge');
+    if (badge) {
+        badge.textContent = count > 0 ? `⚠️ Нужно докупить: ${count}` : 'Всё в порядке';
+        badge.style.color = count > 0 ? '#dc3545' : '';
+    }
+}
+
+// ==================== СПИСАНИЕ ====================
+
+let writeOffTargetItem = null;
+
+function openWriteOff() {
+    document.getElementById('writeOffSearch').value = '';
+    document.getElementById('writeOffResults').innerHTML = '<div style="text-align:center;color:#999;padding:20px;">Введите название предмета</div>';
+    openModal('writeOffModal');
+    document.getElementById('writeOffSearch').focus();
+}
+
+function searchWriteOff() {
+    const query = document.getElementById('writeOffSearch').value.toLowerCase().trim();
+    const results = document.getElementById('writeOffResults');
+    
+    if (query.length < 1) {
+        results.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">Введите название предмета</div>';
+        return;
+    }
+    
+    const found = state.items.filter(i => i.name.toLowerCase().includes(query));
+    
+    if (found.length === 0) {
+        results.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">Ничего не найдено</div>';
+        return;
+    }
+    
+    let html = '';
+    found.forEach(item => {
+        const cat = state.categories.find(c => c.id === item.category);
+        const path = getContainerPath(item.container);
+        const thumb = item.photo 
+            ? `<img src="${item.photo}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;">` 
+            : `<span style="font-size:24px;margin-right:10px;">${cat ? cat.icon : '📌'}</span>`;
+        
+        html += `
+            <div style="display:flex;align-items:center;padding:12px;border-bottom:1px solid #eee;cursor:pointer;border-radius:8px;" onclick="selectWriteOff('${item.id}')" onmousedown="this.style.background='#f0f0f0'" onmouseup="this.style.background=''">
+                ${thumb}
+                <div style="flex:1;">
+                    <div style="font-weight:600;">${item.name}</div>
+                    <div style="font-size:12px;color:#888;">📍 ${path}</div>
+                </div>
+                <div style="font-weight:700;color:#667eea;">×${item.quantity}</div>
+            </div>
+        `;
+    });
+    
+    results.innerHTML = html;
+}
+
+function selectWriteOff(itemId) {
+    const item = state.items.find(i => i.id === itemId);
+    if (!item) return;
+    
+    writeOffTargetItem = item;
+    
+    const cat = state.categories.find(c => c.id === item.category);
+    const path = getContainerPath(item.container);
+    
+    let html = `
+        <div style="text-align:center;padding:10px 0;">
+            ${item.photo ? `<img src="${item.photo}" style="width:80px;height:80px;border-radius:10px;object-fit:cover;margin-bottom:10px;">` : `<div style="font-size:48px;margin-bottom:10px;">${cat ? cat.icon : '📌'}</div>`}
+            <div style="font-size:20px;font-weight:700;">${item.name}</div>
+            <div style="font-size:14px;color:#888;margin-top:5px;">📍 ${path}</div>
+            <div style="margin-top:10px;">
+                <span style="font-size:28px;font-weight:700;color:#667eea;">×${item.quantity}</span>
+                ${item.minQuantity > 0 ? `<span style="font-size:14px;color:#999;"> (мин: ${item.minQuantity})</span>` : ''}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('writeOffConfirmContent').innerHTML = html;
+    document.getElementById('writeOffAmount').value = 1;
+    document.getElementById('writeOffAmount').max = item.quantity;
+    openModal('writeOffConfirmModal');
+}
+
+function confirmWriteOff() {
+    if (!writeOffTargetItem) return;
+    
+    const amount = parseInt(document.getElementById('writeOffAmount').value) || 1;
+    
+    if (amount > writeOffTargetItem.quantity) {
+        showToast('Нельзя списать больше, чем есть!');
+        return;
+    }
+    
+    writeOffTargetItem.quantity -= amount;
+    saveToStorage();
+    updateShoppingBadge();
+    
+    const belowMin = writeOffTargetItem.minQuantity > 0 && writeOffTargetItem.quantity < writeOffTargetItem.minQuantity;
+    
+    closeModal('writeOffConfirmModal');
+    closeModal('writeOffModal');
+    
+    if (belowMin) {
+        showToast(`Списано ${amount} шт. ⚠️ Нужно докупить!`);
+    } else {
+        showToast(`Списано ${amount} шт. Осталось: ${writeOffTargetItem.quantity}`);
+    }
+    
+    writeOffTargetItem = null;
+    
+    // Обновляем текущий вид
+    if (state.viewMode === 'container') {
+        openContainer(state.currentContainer);
+    } else {
+        renderMain();
+    }
+}
 
 // ЗАПУСК
 init();
