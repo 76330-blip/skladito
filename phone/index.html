@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>SKLADITO Phone v2.6.0</title>
+    <title>SKLADITO v2.8.0</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
@@ -80,18 +80,6 @@ body {
 .header h1 {
     font-size: 22px;
     font-weight: 600;
-}
-
-.breadcrumbs {
-    font-size: 12px;
-    opacity: 0.9;
-    margin-top: 3px;
-}
-
-.sync-status {
-    font-size: 11px;
-    opacity: 0.8;
-    margin-top: 3px;
 }
 
 .burger-menu {
@@ -429,6 +417,42 @@ body {
     margin: 5px;
 }
 
+.action-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.action-bar .action-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 22px;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.15s;
+}
+
+.action-bar .action-btn:active {
+    transform: scale(0.93);
+}
+
+.action-btn-save {
+    background: #667eea;
+    color: white;
+}
+
+.action-btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.action-btn-cancel {
+    background: #e9ecef;
+    color: #333;
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -526,6 +550,22 @@ body {
     width: 56px;
     height: 56px;
     background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 100;
+}
+
+.fab-scan {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    width: 56px;
+    height: 56px;
+    background: #28a745;
     color: white;
     border: none;
     border-radius: 50%;
@@ -941,10 +981,8 @@ body {
     <div class="header">
         <div class="header-content">
             <button class="back-btn" id="backBtn" style="display:none;">←</button>
-            <div class="header-title">
-                <h1>📱 SKLADITO Phone v2.6.0</h1>
-                <div class="breadcrumbs" id="breadcrumbs">Главная</div>
-                <div class="sync-status" id="syncStatus">Локальное хранилище</div>
+            <div class="header-title" onclick="renderMain()" style="cursor:pointer;">
+                <h1>📦 SKLADITO Phone</h1>
             </div>
             <span class="header-tokens" id="headerTokens" onclick="openTokensModal()">💰 <span id="tokenCount">10</span></span>
             <button class="burger-btn" id="burgerBtn">☰</button>
@@ -955,7 +993,7 @@ body {
     <div class="burger-overlay" id="burgerOverlay" onclick="closeBurgerMenu()"></div>
     <div class="burger-menu" id="burgerMenu">
         <div class="burger-header">
-            <h2>📱 SKLADITO Phone</h2>
+            <h2>📦 SKLADITO Phone</h2>
             <p>Локальное хранилище</p>
         </div>
         <div class="burger-content">
@@ -1019,6 +1057,9 @@ body {
     <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
 
     <div class="container">
+        <div id="breadcrumbsBar" style="display:none;padding:8px 0;font-size:13px;color:#666;">
+            <span id="breadcrumbs"></span>
+        </div>
         <div id="searchContainer" style="display:none;">
             <div class="search-bar">
                 <input type="text" class="search-input" id="searchInput" placeholder="Поиск...">
@@ -1035,6 +1076,7 @@ body {
     </div>
 
     <button class="fab" id="fabBtn" style="display:none;">+</button>
+    <button class="fab-scan" id="scanFabBtn" onclick="openScannerModal()">📷</button>
     
     <div class="fab-menu" id="fabMenu">
         <div class="fab-menu-item" onclick="openAddContainerModal()">📦 Контейнер</div>
@@ -1064,8 +1106,10 @@ body {
                     </div>
                     <img id="containerPhotoPreview" class="photo-preview" style="display:none;">
                 </div>
-                <button type="submit" class="btn">Создать</button>
-                <button type="button" class="btn btn-secondary" onclick="closeModal('addContainerModal')">Отмена</button>
+                <div class="action-bar">
+                    <button type="submit" class="action-btn action-btn-save">✓</button>
+                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('addContainerModal')">✕</button>
+                </div>
             </form>
         </div>
     </div>
@@ -1111,8 +1155,10 @@ body {
                     </div>
                     <img id="itemPhotoPreview" class="photo-preview" style="display:none;">
                 </div>
-                <button type="submit" class="btn">Создать</button>
-                <button type="button" class="btn btn-secondary" onclick="closeModal('addItemModal')">Отмена</button>
+                <div class="action-bar">
+                    <button type="submit" class="action-btn action-btn-save">✓</button>
+                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('addItemModal')">✕</button>
+                </div>
             </form>
         </div>
     </div>
@@ -1138,9 +1184,11 @@ body {
             <div class="modal-header" id="editModalTitle">Редактировать</div>
             <form id="editForm">
                 <div id="editFormContent"></div>
-                <button type="submit" class="btn">Сохранить</button>
-                <button type="button" class="btn btn-danger" id="deleteBtn">Удалить</button>
-                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Отмена</button>
+                <div class="action-bar">
+                    <button type="submit" class="action-btn action-btn-save">✓</button>
+                    <button type="button" class="action-btn action-btn-delete" id="deleteBtn">🗑️</button>
+                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('editModal')">✕</button>
+                </div>
             </form>
         </div>
     </div>
@@ -1655,7 +1703,7 @@ async function compressImage(file, maxSizeKB = 500) {
 // ЭКСПОРТ ДАННЫХ
 function exportData() {
     const data = {
-        version: '2.6',
+        version: '2.8',
         branch: 'phone',
         exportDate: new Date().toISOString(),
         containers: state.containers,
@@ -1731,10 +1779,6 @@ function importData(event) {
     event.target.value = '';
 }
 
-function updateStatus(message) {
-    document.getElementById('syncStatus').textContent = message;
-}
-
 function setupEventListeners() {
     document.getElementById('backBtn').addEventListener('click', handleBack);
     document.getElementById('burgerBtn').addEventListener('click', openBurgerMenu);
@@ -1784,7 +1828,7 @@ function renderMain() {
     state.viewMode = 'main';
     state.currentContainer = null;
     
-    document.getElementById('breadcrumbs').textContent = 'Главная';
+    document.getElementById('breadcrumbsBar').style.display = 'none';
     document.getElementById('backBtn').style.display = 'none';
     document.getElementById('searchContainer').style.display = 'block';
     document.getElementById('fabBtn').style.display = 'block';
@@ -1899,6 +1943,7 @@ function openContainer(containerId) {
     if (!container) return;
     
     document.getElementById('breadcrumbs').textContent = getContainerPath(containerId);
+    document.getElementById('breadcrumbsBar').style.display = 'block';
     document.getElementById('backBtn').style.display = 'block';
     document.getElementById('searchContainer').style.display = 'none';
     document.getElementById('fabBtn').style.display = 'block';
@@ -1907,15 +1952,15 @@ function openContainer(containerId) {
     const items = state.items.filter(i => i.container === containerId);
     
     let html = `
-        <div class="card" onclick="editContainer('${containerId}')">
-            <div class="card-header">
-                <div class="card-icon">📦</div>
+        <div class="card" style="padding:12px;">
+            <div class="card-header" style="margin-bottom:0;">
+                ${container.photo ? `<img src="${container.photo}" class="card-thumb">` : `<div class="card-icon">📦</div>`}
                 <div class="card-title"><span style="color:#667eea;font-family:'Courier New',monospace;font-weight:700;">#${container.number || '?'}</span> ${container.name}</div>
             </div>
-            ${container.photo ? `<img src="${container.photo}" class="card-photo">` : ''}
-            <div class="card-info" style="display:flex;justify-content:space-between;align-items:center;">
-                <span>Нажмите для редактирования</span>
-                <button onclick="event.stopPropagation(); showQRCode('${containerId}')" style="background:#667eea;color:white;border:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">QR-код</button>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+                <button onclick="editContainer('${containerId}')" style="flex:1;padding:10px;border:none;border-radius:10px;background:#667eea;color:white;font-size:18px;cursor:pointer;">✏️</button>
+                <button onclick="showQRCode('${containerId}')" style="flex:1;padding:10px;border:none;border-radius:10px;background:#28a745;color:white;font-size:18px;cursor:pointer;">QR</button>
+                <button onclick="openScannerModal()" style="flex:1;padding:10px;border:none;border-radius:10px;background:#fd7e14;color:white;font-size:18px;cursor:pointer;">📷</button>
             </div>
         </div>
     `;
@@ -1948,6 +1993,7 @@ function showCategory(categoryId) {
     if (!category) return;
     
     document.getElementById('breadcrumbs').textContent = `Категория: ${category.name}`;
+    document.getElementById('breadcrumbsBar').style.display = 'block';
     document.getElementById('backBtn').style.display = 'block';
     document.getElementById('searchContainer').style.display = 'none';
     document.getElementById('fabBtn').style.display = 'none';
