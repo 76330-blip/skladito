@@ -94,6 +94,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
 .alert-error { background:#f8d7da; color:#721c24; }
 .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#333; color:white; padding:12px 24px; border-radius:24px; font-size:14px; z-index:9999; opacity:0; transition:opacity 0.3s; pointer-events:none; }
 .toast.show { opacity:1; }
+
+.loading-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:5000;align-items:center;justify-content:center;}
+.loading-overlay.active{display:flex;}
+.loading-box{background:white;border-radius:16px;padding:30px;text-align:center;max-width:300px;width:90%;}
+.loading-message{font-size:16px;margin-bottom:20px;color:#333;}
     </style>
 </head>
 <body>
@@ -343,30 +348,70 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
 
     <div class="toast" id="toast"></div>
 
+    <!-- ОВЕРЛЕЙ ЗАГРУЗКИ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <div class="loading-message" id="loadingMessage">Подождите...</div>
+            <button class="btn btn-secondary" onclick="cancelCurrentOperation()" style="width:auto;padding:10px 30px;">Отмена</button>
+        </div>
+    </div>
+
     <script>
 const API_BASE = '/api';
 let state = { containers:[], items:[], categories:[], currentContainer:null, viewMode:'main', editingObject:null };
 
+// ЗАГРУЗОЧНЫЙ ОВЕРЛЕЙ С ОТМЕНОЙ
+let _abortController = null;
+
+function showLoadingOverlay(message) {
+    document.getElementById('loadingMessage').textContent = message || 'Подождите...';
+    document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoadingOverlay() {
+    document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+function cancelCurrentOperation() {
+    if (_abortController) { _abortController.abort(); _abortController = null; }
+    hideLoadingOverlay();
+    showToast('Операция отменена');
+}
+
+function newAbort() {
+    _abortController = new AbortController();
+    return _abortController.signal;
+}
+
+function clearAbort() { _abortController = null; }
+
 async function init() {
+    showLoadingOverlay('Подключение к серверу...');
+    const signal = newAbort();
     try {
         updateStatus('Подключение...');
-        const health = await fetch(`${API_BASE}/health`);
+        const health = await fetch(`${API_BASE}/health`, { signal });
         const hd = await health.json();
         if (hd.status !== 'ok') throw new Error('Сервер недоступен');
         updateStatus('✅ v' + hd.version);
         document.getElementById('burgerStatus').textContent = '✅ Подключено v' + hd.version;
-        await loadData();
+        await loadData(signal);
         setupEventListeners();
+        hideLoadingOverlay(); clearAbort();
         renderMain();
     } catch (error) {
+        hideLoadingOverlay(); clearAbort();
+        if (error.name === 'AbortError') return;
         console.error(error);
         showError('Не удалось подключиться к серверу');
         updateStatus('❌ Ошибка');
     }
 }
 
-async function loadData() {
-    const r = await fetch(`${API_BASE}/sync`);
+async function loadData(signal) {
+    const opts = signal ? { signal } : {};
+    const r = await fetch(`${API_BASE}/sync`, opts);
     const d = await r.json();
     state.containers = d.containers || [];
     state.items = d.items || [];
@@ -555,27 +600,33 @@ async function addNewCategory(ctx) {
     const name = document.getElementById(inputId).value.trim();
     if (!name) { showToast('Введите название'); return; }
     const newCat = { id:'cat'+Date.now(), name, icon:'📂', order:state.categories.length };
+    showLoadingOverlay('Сохранение...');
+    const signal = newAbort();
     try {
-        await fetch(`${API_BASE}/categories`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newCat) });
-        await loadData();
+        await fetch(`${API_BASE}/categories`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newCat), signal });
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
         fillCategorySelect(selectId);
         document.getElementById(selectId).value = newCat.id;
         hideNewCategoryInput(ctx);
         showToast(`Категория "${name}" добавлена!`);
-    } catch(e) { alert('Ошибка: '+e.message); }
+    } catch(e) { hideLoadingOverlay(); clearAbort(); if (e.name !== 'AbortError') alert('Ошибка: '+e.message); }
 }
 
 async function addCategoryFromModal() {
     const name = document.getElementById('newCategoryNameModal').value.trim();
     if (!name) { showToast('Введите название'); return; }
     const newCat = { id:'cat'+Date.now(), name, icon:'📂', order:state.categories.length };
+    showLoadingOverlay('Сохранение...');
+    const signal = newAbort();
     try {
-        await fetch(`${API_BASE}/categories`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newCat) });
-        await loadData();
+        await fetch(`${API_BASE}/categories`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newCat), signal });
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
         document.getElementById('newCategoryNameModal').value = '';
         renderCategoriesList();
         showToast(`Категория "${name}" добавлена!`);
-    } catch(e) { alert('Ошибка: '+e.message); }
+    } catch(e) { hideLoadingOverlay(); clearAbort(); if (e.name !== 'AbortError') alert('Ошибка: '+e.message); }
 }
 
 async function deleteCategoryPrompt(catId) {
@@ -583,12 +634,15 @@ async function deleteCategoryPrompt(catId) {
     if (!cat) return;
     const count = state.items.filter(i => i.category === catId).length;
     if (!confirm(`Удалить "${cat.name}"?${count>0?' У '+count+' предметов будет снята категория.':''}`)) return;
+    showLoadingOverlay('Удаление...');
+    const signal = newAbort();
     try {
-        await fetch(`${API_BASE}/categories/${catId}`, { method:'DELETE' });
-        await loadData();
+        await fetch(`${API_BASE}/categories/${catId}`, { method:'DELETE', signal });
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
         renderCategoriesList();
         showToast('Категория удалена');
-    } catch(e) { alert('Ошибка: '+e.message); }
+    } catch(e) { hideLoadingOverlay(); clearAbort(); if (e.name !== 'AbortError') alert('Ошибка: '+e.message); }
 }
 
 async function renameCategoryPrompt(catId) {
@@ -597,12 +651,15 @@ async function renameCategoryPrompt(catId) {
     const newName = prompt('Новое название:', cat.name);
     if (!newName || !newName.trim()) return;
     cat.name = newName.trim();
+    showLoadingOverlay('Сохранение...');
+    const signal = newAbort();
     try {
-        await fetch(`${API_BASE}/categories/${catId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cat) });
-        await loadData();
+        await fetch(`${API_BASE}/categories/${catId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cat), signal });
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
         renderCategoriesList();
         showToast('Категория переименована');
-    } catch(e) { alert('Ошибка: '+e.message); }
+    } catch(e) { hideLoadingOverlay(); clearAbort(); if (e.name !== 'AbortError') alert('Ошибка: '+e.message); }
 }
 
 function changeCategoryIcon(catId) {
@@ -620,12 +677,15 @@ async function setCategoryIcon(catId, icon) {
     const cat = state.categories.find(c => c.id === catId);
     if (!cat) return;
     cat.icon = icon;
+    showLoadingOverlay('Сохранение...');
+    const signal = newAbort();
     try {
-        await fetch(`${API_BASE}/categories/${catId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cat) });
-        await loadData();
+        await fetch(`${API_BASE}/categories/${catId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cat), signal });
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
         renderCategoriesList();
         showToast('Иконка изменена');
-    } catch(e) { alert('Ошибка: '+e.message); }
+    } catch(e) { hideLoadingOverlay(); clearAbort(); if (e.name !== 'AbortError') alert('Ошибка: '+e.message); }
 }
 
 // ==================== НОМЕРА КОНТЕЙНЕРОВ ====================
@@ -657,14 +717,18 @@ async function handleAddContainer(e) {
     if (!isNumberUnique(number, state.currentContainer, null)) { showToast(`Номер ${number} уже занят!`); return; }
     const photoFile = document.getElementById('containerPhoto').files[0];
     let photo = null;
-    if (photoFile) photo = await fileToBase64(photoFile);
-    const container = { id:'c'+Date.now(), number, name, photo, parent:state.currentContainer, created:new Date().toISOString() };
+    showLoadingOverlay('Сохранение...');
+    const signal = newAbort();
     try {
-        const r = await fetch(`${API_BASE}/containers`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(container) });
+        if (photoFile) photo = await fileToBase64(photoFile);
+        const container = { id:'c'+Date.now(), number, name, photo, parent:state.currentContainer, created:new Date().toISOString() };
+        const r = await fetch(`${API_BASE}/containers`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(container), signal });
         if (!r.ok) throw new Error('Ошибка создания');
-        await loadData(); closeModal('addContainerModal');
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
+        closeModal('addContainerModal');
         if (state.currentContainer) openContainer(state.currentContainer); else renderMain();
-    } catch(e) { alert('Ошибка: '+e.message); }
+    } catch(e) { hideLoadingOverlay(); clearAbort(); if (e.name !== 'AbortError') alert('Ошибка: '+e.message); }
 }
 
 async function handleAddItem(e) {
@@ -675,13 +739,17 @@ async function handleAddItem(e) {
     const category = document.getElementById('itemCategory').value||null;
     const photoFile = document.getElementById('itemPhoto').files[0];
     let photo = null;
-    if (photoFile) photo = await fileToBase64(photoFile);
-    const item = { id:'i'+Date.now(), name, quantity, minQuantity, category, photo, container:state.currentContainer, created:new Date().toISOString() };
+    showLoadingOverlay('Сохранение...');
+    const signal = newAbort();
     try {
-        const r = await fetch(`${API_BASE}/items`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item) });
+        if (photoFile) photo = await fileToBase64(photoFile);
+        const item = { id:'i'+Date.now(), name, quantity, minQuantity, category, photo, container:state.currentContainer, created:new Date().toISOString() };
+        const r = await fetch(`${API_BASE}/items`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item), signal });
         if (!r.ok) throw new Error('Ошибка создания');
-        await loadData(); closeModal('addItemModal'); openContainer(state.currentContainer);
-    } catch(e) { alert('Ошибка: '+e.message); }
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
+        closeModal('addItemModal'); openContainer(state.currentContainer);
+    } catch(e) { hideLoadingOverlay(); clearAbort(); if (e.name !== 'AbortError') alert('Ошибка: '+e.message); }
 }
 
 function editContainer(containerId) {
@@ -746,18 +814,20 @@ async function handleEdit(e) {
     const type=document.getElementById('editType').value, id=document.getElementById('editId').value, name=document.getElementById('editName').value;
     const photoInput=document.getElementById('editPhotoInput');
     let newPhoto=null;
-    if (photoInput.files[0]) newPhoto = await fileToBase64(photoInput.files[0]);
+    showLoadingOverlay('Сохранение...');
+    const signal = newAbort();
     try {
+        if (photoInput.files[0]) newPhoto = await fileToBase64(photoInput.files[0]);
         if (type==='container') {
             const c=state.containers.find(x=>x.id===id);
             c.name=name;
             const ni=document.getElementById('editNumber');
-            if (ni) { const nn=ni.value?String(parseInt(ni.value)).padStart(4,'0'):c.number; if(nn!==c.number&&!isNumberUnique(nn,c.parent,c.id)){showToast('Номер '+nn+' уже занят!');return;} c.number=nn; }
+            if (ni) { const nn=ni.value?String(parseInt(ni.value)).padStart(4,'0'):c.number; if(nn!==c.number&&!isNumberUnique(nn,c.parent,c.id)){hideLoadingOverlay();clearAbort();showToast('Номер '+nn+' уже занят!');return;} c.number=nn; }
             const ps=document.getElementById('editParent');
             if (ps) { const np=ps.value||null; c.parent=np; }
             if (newPhoto) c.photo=newPhoto;
             if (state.editingObject.data.photo===null) c.photo=null;
-            const r=await fetch(`${API_BASE}/containers/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(c) });
+            const r=await fetch(`${API_BASE}/containers/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(c), signal });
             if (!r.ok) throw new Error('Ошибка');
         } else {
             const item=state.items.find(x=>x.id===id);
@@ -765,28 +835,34 @@ async function handleEdit(e) {
             item.category=document.getElementById('editCategory').value||null;
             if (newPhoto) item.photo=newPhoto;
             if (state.editingObject.data.photo===null) item.photo=null;
-            const r=await fetch(`${API_BASE}/items/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item) });
+            const r=await fetch(`${API_BASE}/items/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item), signal });
             if (!r.ok) throw new Error('Ошибка');
         }
-        await loadData(); closeModal('editModal');
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
+        closeModal('editModal');
         if (state.viewMode==='container') openContainer(state.currentContainer); else renderMain();
-    } catch(err) { alert('Ошибка: '+err.message); }
+    } catch(err) { hideLoadingOverlay(); clearAbort(); if (err.name !== 'AbortError') alert('Ошибка: '+err.message); }
 }
 
 async function handleDelete() {
     if (!confirm('Удалить? Это действие нельзя отменить.')) return;
     const type=document.getElementById('editType').value, id=document.getElementById('editId').value;
+    showLoadingOverlay('Удаление...');
+    const signal = newAbort();
     try {
         if (type==='container') {
-            const r=await fetch(`${API_BASE}/containers/${id}`, { method:'DELETE' });
+            const r=await fetch(`${API_BASE}/containers/${id}`, { method:'DELETE', signal });
             if (!r.ok) { const e=await r.json(); throw new Error(e.error||'Ошибка'); }
         } else {
-            const r=await fetch(`${API_BASE}/items/${id}`, { method:'DELETE' });
+            const r=await fetch(`${API_BASE}/items/${id}`, { method:'DELETE', signal });
             if (!r.ok) throw new Error('Ошибка');
         }
-        await loadData(); closeModal('editModal');
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
+        closeModal('editModal');
         if (state.viewMode==='container') openContainer(state.currentContainer); else renderMain();
-    } catch(err) { alert('Ошибка: '+err.message); }
+    } catch(err) { hideLoadingOverlay(); clearAbort(); if (err.name !== 'AbortError') alert('Ошибка: '+err.message); }
 }
 
 // ==================== НАВИГАЦИЯ/ПОИСК ====================
@@ -985,15 +1061,18 @@ async function confirmWriteOff() {
     const amount=parseInt(document.getElementById('writeOffAmount').value)||1;
     if(amount>writeOffTargetItem.quantity){showToast('Нельзя списать больше!');return;}
     writeOffTargetItem.quantity-=amount;
+    showLoadingOverlay('Сохранение...');
+    const signal = newAbort();
     try {
-        await fetch(`${API_BASE}/items/${writeOffTargetItem.id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(writeOffTargetItem) });
-        await loadData();
+        await fetch(`${API_BASE}/items/${writeOffTargetItem.id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(writeOffTargetItem), signal });
+        await loadData(signal);
+        hideLoadingOverlay(); clearAbort();
         const belowMin=writeOffTargetItem.minQuantity>0&&writeOffTargetItem.quantity<writeOffTargetItem.minQuantity;
         closeModal('writeOffConfirmModal'); closeModal('writeOffModal');
         showToast(belowMin?`Списано ${amount}. ⚠️ Нужно докупить!`:`Списано ${amount}. Осталось: ${writeOffTargetItem.quantity}`);
         writeOffTargetItem=null;
         if(state.viewMode==='container')openContainer(state.currentContainer); else renderMain();
-    } catch(e) { alert('Ошибка: '+e.message); }
+    } catch(e) { hideLoadingOverlay(); clearAbort(); if (e.name !== 'AbortError') { writeOffTargetItem.quantity+=amount; alert('Ошибка: '+e.message); } }
 }
 
 init();

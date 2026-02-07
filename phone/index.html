@@ -946,6 +946,14 @@ body {
     padding: 10px;
 }
 
+/* ЗАГРУЗОЧНЫЙ ОВЕРЛЕЙ */
+.op-spinner{border:4px solid #f3f3f3;border-top:4px solid #667eea;border-radius:50%;width:40px;height:40px;animation:op-spin 1s linear infinite;margin:0 auto;}
+@keyframes op-spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.loading-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:5000;align-items:center;justify-content:center;}
+.loading-overlay.active{display:flex;}
+.loading-box{background:white;border-radius:16px;padding:30px;text-align:center;max-width:300px;width:90%;}
+.loading-message{font-size:16px;margin-bottom:20px;color:#333;}
+
     </style>
 </head>
 <body>
@@ -1319,6 +1327,15 @@ body {
         </div>
     </div>
 
+    <!-- ОВЕРЛЕЙ ЗАГРУЗКИ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-box">
+            <div class="op-spinner"></div>
+            <div class="loading-message" id="loadingMessage">Подождите...</div>
+            <button class="btn btn-secondary" onclick="cancelCurrentOperation()" style="width:auto;padding:10px 30px;">Отмена</button>
+        </div>
+    </div>
+
     <script>
 // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 let state = {
@@ -1496,6 +1513,25 @@ function showToast(message) {
     }, 3000);
 }
 
+// ЗАГРУЗОЧНЫЙ ОВЕРЛЕЙ С ОТМЕНОЙ
+let _operationCancelled = false;
+
+function showLoadingOverlay(message) {
+    _operationCancelled = false;
+    document.getElementById('loadingMessage').textContent = message || 'Подождите...';
+    document.getElementById('loadingOverlay').classList.add('active');
+}
+
+function hideLoadingOverlay() {
+    document.getElementById('loadingOverlay').classList.remove('active');
+}
+
+function cancelCurrentOperation() {
+    _operationCancelled = true;
+    hideLoadingOverlay();
+    showToast('Операция отменена');
+}
+
 // ИНИЦИАЛИЗАЦИЯ
 function updateStatus(msg) {
     console.log(msg);
@@ -1668,15 +1704,19 @@ function closeBurgerMenu() {
 
 // СЖАТИЕ ИЗОБРАЖЕНИЙ
 async function compressImage(file, maxSizeKB = 500) {
+    showLoadingOverlay('Сжатие фото...');
     return new Promise((resolve) => {
+        if (_operationCancelled) { hideLoadingOverlay(); resolve(null); return; }
         const reader = new FileReader();
         reader.onload = (e) => {
+            if (_operationCancelled) { hideLoadingOverlay(); resolve(null); return; }
             const img = new Image();
             img.onload = () => {
+                if (_operationCancelled) { hideLoadingOverlay(); resolve(null); return; }
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                
+
                 const maxDimension = 1024;
                 if (width > maxDimension || height > maxDimension) {
                     if (width > height) {
@@ -1687,21 +1727,23 @@ async function compressImage(file, maxSizeKB = 500) {
                         height = maxDimension;
                     }
                 }
-                
+
                 canvas.width = width;
                 canvas.height = height;
-                
+
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                
+
                 let quality = 0.8;
                 let result = canvas.toDataURL('image/jpeg', quality);
-                
+
                 while (result.length > maxSizeKB * 1024 && quality > 0.1) {
+                    if (_operationCancelled) { hideLoadingOverlay(); resolve(null); return; }
                     quality -= 0.1;
                     result = canvas.toDataURL('image/jpeg', quality);
                 }
-                
+
+                hideLoadingOverlay();
                 resolve(result);
             };
             img.src = e.target.result;
@@ -1739,22 +1781,27 @@ function exportData() {
 function importData(event) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
+    if (!confirm('Импорт заменит все текущие данные. Продолжить?')) {
+        event.target.value = '';
+        return;
+    }
+
+    showLoadingOverlay('Импорт данных...');
     const reader = new FileReader();
     reader.onload = (e) => {
+        if (_operationCancelled) { event.target.value = ''; return; }
         try {
             const data = JSON.parse(e.target.result);
-            
-            // Поддержка версий 2.0 и 2.2
+
             if (!data.version || !data.version.startsWith('2.')) {
+                hideLoadingOverlay();
                 alert('Неподдерживаемая версия данных');
                 return;
             }
-            
-            if (!confirm('Импорт заменит все текущие данные. Продолжить?')) {
-                return;
-            }
-            
+
+            if (_operationCancelled) { event.target.value = ''; return; }
+
             const backup = {
                 containers: state.containers,
                 items: state.items,
@@ -1762,30 +1809,30 @@ function importData(event) {
                 tokens: getTokens()
             };
             localStorage.setItem('skladito_backup', JSON.stringify(backup));
-            
+
             state.containers = data.containers || [];
             state.items = data.items || [];
             state.categories = data.categories || DEFAULT_CATEGORIES;
-            
-            // Импорт токенов если есть
+
             if (data.tokens !== undefined) {
                 setTokens(data.tokens);
             }
-            
-            // Импорт userId если есть (для сохранения реферальной истории)
+
             if (data.userId) {
                 localStorage.setItem('skladito_user_id', data.userId);
             }
-            
+
             saveToStorage();
+            hideLoadingOverlay();
             renderMain();
             showToast('Данные успешно импортированы!');
         } catch (error) {
+            hideLoadingOverlay();
             alert('Ошибка импорта: ' + error.message);
         }
     };
     reader.readAsText(file);
-    
+
     event.target.value = '';
 }
 
@@ -2275,8 +2322,9 @@ function customCategoryIcon(catId) {
 async function previewPhoto(e, previewId) {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const compressed = await compressImage(file);
+    if (!compressed) { e.target.value = ''; return; }
     const img = document.getElementById(previewId);
     img.src = compressed;
     img.style.display = 'block';
@@ -2299,8 +2347,9 @@ async function handleAddContainer(e) {
     let photo = null;
     if (photoFile) {
         photo = await compressImage(photoFile);
+        if (!photo) return;
     }
-    
+
     const container = {
         id: 'c' + Date.now(),
         name: name,
@@ -2339,8 +2388,9 @@ async function handleAddItem(e) {
     let photo = null;
     if (photoFile) {
         photo = await compressImage(photoFile);
+        if (!photo) return;
     }
-    
+
     const item = {
         id: 'i' + Date.now(),
         name: name,
@@ -2426,6 +2476,7 @@ function editContainer(containerId) {
         const file = e.target.files[0];
         if (file) {
             const compressed = await compressImage(file);
+            if (!compressed) { e.target.value = ''; return; }
             const img = document.getElementById('editPhotoPreview');
             img.src = compressed;
             img.style.display = 'block';
@@ -2508,6 +2559,7 @@ function editItem(itemId) {
         const file = e.target.files[0];
         if (file) {
             const compressed = await compressImage(file);
+            if (!compressed) { e.target.value = ''; return; }
             const img = document.getElementById('editPhotoPreview');
             img.src = compressed;
             img.style.display = 'block';
@@ -2534,8 +2586,9 @@ async function handleEdit(e) {
     let newPhoto = null;
     if (photoInput.files[0]) {
         newPhoto = await compressImage(photoInput.files[0]);
+        if (!newPhoto) return;
     }
-    
+
     if (type === 'container') {
         const container = state.containers.find(c => c.id === id);
         container.name = name;
