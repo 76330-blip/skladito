@@ -144,6 +144,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
                 <div class="onboarding-title">LAN версия</div>
                 <div class="onboarding-text">Все данные хранятся на вашем сервере. Доступ с любого устройства в локальной сети</div>
             </div>
+            <div class="onboarding-slide">
+                <div class="onboarding-icon">✈️</div>
+                <div class="onboarding-title">Telegram-канал</div>
+                <div class="onboarding-text">Подписывайтесь на @skladito — новости, техподдержка и обратная связь</div>
+            </div>
         </div>
         <div class="onboarding-nav">
             <div class="onboarding-dots">
@@ -151,6 +156,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
                 <div class="onboarding-dot" data-slide="1"></div>
                 <div class="onboarding-dot" data-slide="2"></div>
                 <div class="onboarding-dot" data-slide="3"></div>
+                <div class="onboarding-dot" data-slide="4"></div>
             </div>
             <button class="onboarding-btn" id="onboardingBtn">Далее</button>
             <button class="onboarding-skip" id="onboardingSkip">Пропустить</button>
@@ -431,7 +437,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
 const API_BASE = '/api';
 let state = { containers:[], items:[], categories:[], currentContainer:null, viewMode:'main', editingObject:null };
 let currentSlide = 0;
-const totalSlides = 4;
+const totalSlides = 5;
 
 async function init() {
     try {
@@ -537,7 +543,7 @@ async function compressImage(file, maxSizeKB = 500) {
                 ctx.drawImage(img, 0, 0, width, height);
                 let quality = 0.8;
                 let result = canvas.toDataURL('image/jpeg', quality);
-                while (result.length > maxSizeKB * 1024 && quality > 0.1) {
+                while (result.length * 0.75 > maxSizeKB * 1024 && quality > 0.1) {
                     quality -= 0.1;
                     result = canvas.toDataURL('image/jpeg', quality);
                 }
@@ -575,12 +581,9 @@ async function importData(event) {
             if (!data.version || !data.version.startsWith('2.')) { alert('Неподдерживаемая версия данных'); return; }
             if (!confirm('Импорт заменит все текущие данные. Продолжить?')) return;
             showToast('Импорт данных...');
-            for (const item of state.items) { await fetch(`${API_BASE}/items/${item.id}`, { method:'DELETE' }); }
-            for (const c of state.containers) { await fetch(`${API_BASE}/containers/${c.id}`, { method:'DELETE' }); }
-            for (const cat of state.categories) { await fetch(`${API_BASE}/categories/${cat.id}`, { method:'DELETE' }); }
-            for (const cat of (data.categories||[])) { await fetch(`${API_BASE}/categories`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cat) }); }
-            for (const c of (data.containers||[])) { await fetch(`${API_BASE}/containers`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(c) }); }
-            for (const item of (data.items||[])) { await fetch(`${API_BASE}/items`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item) }); }
+            const syncData = { containers: data.containers||[], items: data.items||[], categories: data.categories||[] };
+            const r = await fetch(`${API_BASE}/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(syncData) });
+            if (!r.ok) throw new Error('Ошибка синхронизации');
             await loadData();
             renderMain();
             showToast('Данные успешно импортированы!');
