@@ -94,44 +94,113 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
 .alert-error { background:#f8d7da; color:#721c24; }
 .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:#333; color:white; padding:12px 24px; border-radius:24px; font-size:14px; z-index:9999; opacity:0; transition:opacity 0.3s; pointer-events:none; }
 .toast.show { opacity:1; }
+
+/* Экран входа */
+.login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(135deg,#4A90E2 0%,#357ABD 100%); }
+.login-box { background:white; border-radius:20px; padding:40px 30px; max-width:360px; width:100%; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.2); }
+.login-box h1 { font-size:28px; margin-bottom:8px; color:#333; }
+.login-box p { color:#888; margin-bottom:30px; font-size:14px; }
+.login-box .form-input { text-align:center; font-size:28px; font-weight:700; letter-spacing:8px; padding:16px; margin-bottom:15px; }
+.login-box .login-error { color:#dc3545; font-size:14px; margin-bottom:10px; min-height:20px; }
+
+/* Пользователи */
+.user-row { display:flex; align-items:center; padding:14px 0; border-bottom:1px solid #eee; }
+.user-row-info { flex:1; }
+.user-row-name { font-weight:600; font-size:15px; }
+.user-row-meta { font-size:12px; color:#999; margin-top:2px; }
+.user-row-actions { display:flex; gap:6px; }
+.user-row-actions button { background:none; border:none; font-size:18px; cursor:pointer; padding:6px; border-radius:8px; }
+.user-row-actions button:active { background:#f0f0f0; }
+
+/* Ссылка приглашения */
+.invite-link-box { background:#e8f4fd; border:2px solid #4A90E2; border-radius:12px; padding:16px; margin:15px 0; word-break:break-all; font-size:13px; color:#333; position:relative; }
+.invite-link-box button { position:absolute; top:8px; right:8px; background:#4A90E2; color:white; border:none; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; }
+
+/* Доступ к контейнеру */
+.access-row { display:flex; align-items:center; padding:10px 0; border-bottom:1px solid #eee; }
+.access-row-name { flex:1; font-weight:500; }
+.access-row button { background:none; border:none; font-size:18px; cursor:pointer; padding:4px 8px; }
     </style>
 </head>
 <body>
+
+<!-- ЭКРАН ВХОДА -->
+<div id="loginScreen" class="login-screen" style="display:none;">
+    <div class="login-box">
+        <h1>SKLADITO</h1>
+        <p>Введите код для входа</p>
+        <div class="login-error" id="loginError"></div>
+        <input type="text" class="form-input" id="loginCode" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="0000">
+        <button class="btn" onclick="doLogin()">Войти</button>
+    </div>
+</div>
+
+<!-- ЭКРАН АКТИВАЦИИ -->
+<div id="activateScreen" class="login-screen" style="display:none;">
+    <div class="login-box">
+        <h1>SKLADITO</h1>
+        <p>Активация аккаунта</p>
+        <div id="activateName" style="font-size:20px;font-weight:700;color:#4A90E2;margin-bottom:20px;"></div>
+        <div class="login-error" id="activateError"></div>
+        <input type="text" class="form-input" id="activateCode" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="Придумайте код">
+        <button class="btn" onclick="doActivate()">Активировать</button>
+    </div>
+</div>
+
+<!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+<div id="appScreen" style="display:none;">
     <div class="header">
         <div class="header-content">
-            <button class="back-btn" id="backBtn" style="display:none;">←</button>
+            <button class="back-btn" id="backBtn" style="display:none;">&#8592;</button>
             <div class="header-title" onclick="renderMain()" style="cursor:pointer;">
-                <h1>📦 SKLADITO LAN</h1>
+                <h1>SKLADITO LAN</h1>
             </div>
-            <button class="burger-btn" id="burgerBtn">☰</button>
+            <button class="burger-btn" id="burgerBtn">&#9776;</button>
         </div>
     </div>
 
     <div class="burger-overlay" id="burgerOverlay" onclick="closeBurgerMenu()"></div>
     <div class="burger-menu" id="burgerMenu">
         <div class="burger-header">
-            <h2>📦 SKLADITO LAN</h2>
-            <p id="burgerStatus">Подключение...</p>
+            <h2>SKLADITO LAN</h2>
+            <p id="burgerUserName"></p>
+            <p id="burgerStatus" style="margin-top:2px;">...</p>
         </div>
         <div class="burger-item" onclick="openCategoriesModal(); closeBurgerMenu();">
-            <div class="burger-item-icon">🏷️</div>
+            <div class="burger-item-icon">&#127991;&#65039;</div>
             <div class="burger-item-text">
                 <div class="burger-item-title">Категории</div>
                 <div class="burger-item-subtitle">Управление категориями</div>
             </div>
         </div>
         <div class="burger-item" onclick="openShoppingList(); closeBurgerMenu();">
-            <div class="burger-item-icon">🛒</div>
+            <div class="burger-item-icon">&#128722;</div>
             <div class="burger-item-text">
                 <div class="burger-item-title">Список покупок</div>
                 <div class="burger-item-subtitle" id="shoppingBadge">Что нужно докупить</div>
             </div>
         </div>
         <div class="burger-item" onclick="openWriteOff(); closeBurgerMenu();">
-            <div class="burger-item-icon">📝</div>
+            <div class="burger-item-icon">&#128221;</div>
             <div class="burger-item-text">
                 <div class="burger-item-title">Списать предмет</div>
                 <div class="burger-item-subtitle">Уменьшить количество</div>
+            </div>
+        </div>
+        <div id="burgerAdminSection" style="display:none;">
+            <div class="burger-item" onclick="openUsersScreen(); closeBurgerMenu();">
+                <div class="burger-item-icon">&#128101;</div>
+                <div class="burger-item-text">
+                    <div class="burger-item-title">Пользователи</div>
+                    <div class="burger-item-subtitle">Управление доступом</div>
+                </div>
+            </div>
+        </div>
+        <div class="burger-item" onclick="doLogout();" style="border-top:2px solid #eee;">
+            <div class="burger-item-icon">&#128682;</div>
+            <div class="burger-item-text">
+                <div class="burger-item-title" style="color:#dc3545;">Выйти</div>
+                <div class="burger-item-subtitle">Сменить пользователя</div>
             </div>
         </div>
     </div>
@@ -143,7 +212,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
         <div id="searchContainer" style="display:none;">
             <div class="search-bar">
                 <input type="text" class="search-input" id="searchInput" placeholder="Поиск...">
-                <span class="search-icon">🔍</span>
+                <span class="search-icon">&#128269;</span>
             </div>
         </div>
         <div id="mainContent">
@@ -152,10 +221,10 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
     </div>
 
     <button class="fab" id="fabBtn" style="display:none;">+</button>
-    <button class="fab-scan" onclick="openScannerModal()">📷</button>
+    <button class="fab-scan" onclick="openScannerModal()">&#128247;</button>
     <div class="fab-menu" id="fabMenu">
-        <div class="fab-menu-item" onclick="openAddContainerModal()">📦 Контейнер</div>
-        <div class="fab-menu-item" onclick="openAddItemModal()">📌 Предмет</div>
+        <div class="fab-menu-item" onclick="openAddContainerModal()">&#128230; Контейнер</div>
+        <div class="fab-menu-item" onclick="openAddItemModal()">&#128204; Предмет</div>
     </div>
 
     <!-- МОДАЛКА: НОВЫЙ КОНТЕЙНЕР -->
@@ -174,12 +243,12 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
                 <div class="form-group">
                     <label class="form-label">Фото</label>
                     <input type="file" class="photo-upload" id="containerPhoto" accept="image/*">
-                    <div class="photo-upload-btn" onclick="document.getElementById('containerPhoto').click()">📷 Добавить фото</div>
+                    <div class="photo-upload-btn" onclick="document.getElementById('containerPhoto').click()">&#128247; Добавить фото</div>
                     <img id="containerPhotoPreview" class="photo-preview" style="display:none;">
                 </div>
                 <div class="action-bar">
-                    <button type="submit" class="action-btn action-btn-save">✓</button>
-                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('addContainerModal')">✕</button>
+                    <button type="submit" class="action-btn action-btn-save">&#10003;</button>
+                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('addContainerModal')">&#10005;</button>
                 </div>
             </form>
         </div>
@@ -211,20 +280,20 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
                     <div id="newCategoryItem" style="display:none;margin-top:8px;">
                         <div style="display:flex;gap:8px;">
                             <input type="text" class="form-input" id="newCategoryNameItem" placeholder="Название" style="flex:1;">
-                            <button type="button" class="btn btn-small" onclick="addNewCategory('item')" style="width:auto;padding:10px 14px;margin:0;">✓</button>
-                            <button type="button" class="btn btn-small btn-secondary" onclick="hideNewCategoryInput('item')" style="width:auto;padding:10px 14px;margin:0;">✕</button>
+                            <button type="button" class="btn btn-small" onclick="addNewCategory('item')" style="width:auto;padding:10px 14px;margin:0;">&#10003;</button>
+                            <button type="button" class="btn btn-small btn-secondary" onclick="hideNewCategoryInput('item')" style="width:auto;padding:10px 14px;margin:0;">&#10005;</button>
                         </div>
                     </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Фото</label>
                     <input type="file" class="photo-upload" id="itemPhoto" accept="image/*">
-                    <div class="photo-upload-btn" onclick="document.getElementById('itemPhoto').click()">📷 Добавить фото</div>
+                    <div class="photo-upload-btn" onclick="document.getElementById('itemPhoto').click()">&#128247; Добавить фото</div>
                     <img id="itemPhotoPreview" class="photo-preview" style="display:none;">
                 </div>
                 <div class="action-bar">
-                    <button type="submit" class="action-btn action-btn-save">✓</button>
-                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('addItemModal')">✕</button>
+                    <button type="submit" class="action-btn action-btn-save">&#10003;</button>
+                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('addItemModal')">&#10005;</button>
                 </div>
             </form>
         </div>
@@ -250,9 +319,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
             <form id="editForm">
                 <div id="editFormContent"></div>
                 <div class="action-bar">
-                    <button type="submit" class="action-btn action-btn-save">✓</button>
-                    <button type="button" class="action-btn action-btn-delete" id="deleteBtn">🗑️</button>
-                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('editModal')">✕</button>
+                    <button type="submit" class="action-btn action-btn-save">&#10003;</button>
+                    <button type="button" class="action-btn action-btn-delete" id="deleteBtn">&#128465;&#65039;</button>
+                    <button type="button" class="action-btn action-btn-cancel" onclick="closeModal('editModal')">&#10005;</button>
                 </div>
             </form>
         </div>
@@ -267,7 +336,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
                 <div id="qrNumber" style="font-size:48px;font-weight:900;letter-spacing:6px;color:#333;margin-bottom:8px;"></div>
                 <div id="qrName" style="font-size:14px;color:#666;"></div>
             </div>
-            <button class="btn" onclick="printQrCard()">🖨️ Печать</button>
+            <button class="btn" onclick="printQrCard()">&#128424;&#65039; Печать</button>
             <button class="btn btn-secondary" onclick="closeModal('qrModal')">Закрыть</button>
         </div>
     </div>
@@ -277,11 +346,11 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
         <div class="modal-content" style="max-width:100%;padding:10px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                 <div class="modal-header" style="margin-bottom:0;">Сканер</div>
-                <button style="background:none;border:none;font-size:24px;cursor:pointer;" onclick="stopScanner()">✕</button>
+                <button style="background:none;border:none;font-size:24px;cursor:pointer;" onclick="stopScanner()">&#10005;</button>
             </div>
             <div style="display:flex;gap:8px;margin-bottom:10px;">
-                <button class="btn btn-small" id="scanModeLook" onclick="setScanMode('look')" style="flex:1;background:#4A90E2;">📦 Что внутри?</button>
-                <button class="btn btn-small" id="scanModeFind" onclick="setScanMode('find')" style="flex:1;background:#6c757d;">🔍 Найти коробку</button>
+                <button class="btn btn-small" id="scanModeLook" onclick="setScanMode('look')" style="flex:1;background:#4A90E2;">&#128230; Что внутри?</button>
+                <button class="btn btn-small" id="scanModeFind" onclick="setScanMode('find')" style="flex:1;background:#6c757d;">&#128269; Найти коробку</button>
             </div>
             <div id="findContainerSelect" style="display:none;margin-bottom:10px;">
                 <select class="form-select" id="findTargetContainer"><option value="">Выберите контейнер...</option></select>
@@ -297,9 +366,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
             <div class="modal-header" id="scanResultTitle">Содержимое</div>
             <div id="scanResultContent"></div>
             <div style="margin:10px 0;">
-                <button class="btn btn-small" id="toggleAllItems" onclick="toggleScanAllItems()" style="width:100%;">📋 Показать ВСЕ предметы</button>
+                <button class="btn btn-small" id="toggleAllItems" onclick="toggleScanAllItems()" style="width:100%;">&#128203; Показать ВСЕ предметы</button>
             </div>
-            <button class="btn" onclick="navigateToScanned()">📂 Открыть контейнер</button>
+            <button class="btn" onclick="navigateToScanned()">&#128194; Открыть контейнер</button>
             <button class="btn btn-secondary" onclick="closeModal('scanResultModal')">Закрыть</button>
         </div>
     </div>
@@ -307,9 +376,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
     <!-- МОДАЛКА: СПИСОК ПОКУПОК -->
     <div class="modal" id="shoppingModal">
         <div class="modal-content">
-            <div class="modal-header">🛒 Список покупок</div>
+            <div class="modal-header">&#128722; Список покупок</div>
             <div id="shoppingList"></div>
-            <button class="btn" onclick="shareShoppingList()" style="margin-top:15px;">📤 Поделиться списком</button>
+            <button class="btn" onclick="shareShoppingList()" style="margin-top:15px;">&#128228; Поделиться списком</button>
             <button class="btn btn-secondary" onclick="closeModal('shoppingModal')">Закрыть</button>
         </div>
     </div>
@@ -317,7 +386,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
     <!-- МОДАЛКА: СПИСАНИЕ -->
     <div class="modal" id="writeOffModal">
         <div class="modal-content">
-            <div class="modal-header">📝 Списать предмет</div>
+            <div class="modal-header">&#128221; Списать предмет</div>
             <div class="form-group">
                 <label class="form-label">Поиск предмета</label>
                 <input type="text" class="form-input" id="writeOffSearch" placeholder="Начните вводить название..." oninput="searchWriteOff()">
@@ -341,32 +410,198 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Roboto','Segoe UI',sans-ser
         </div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <!-- МОДАЛКА: ПОЛЬЗОВАТЕЛИ -->
+    <div class="modal" id="usersModal">
+        <div class="modal-content" style="max-width:550px;">
+            <div class="modal-header">&#128101; Пользователи</div>
+            <div id="usersList"></div>
+            <div id="inviteLinkContainer" style="display:none;">
+                <div class="invite-link-box">
+                    <span id="inviteLinkText"></span>
+                    <button onclick="copyInviteLink()">Копировать</button>
+                </div>
+            </div>
+            <button class="btn" onclick="openAddUserModal()">+ Добавить пользователя</button>
+            <button class="btn btn-secondary" onclick="closeModal('usersModal')">Закрыть</button>
+        </div>
+    </div>
 
-    <script>
+    <!-- МОДАЛКА: НОВЫЙ ПОЛЬЗОВАТЕЛЬ -->
+    <div class="modal" id="addUserModal">
+        <div class="modal-content">
+            <div class="modal-header">Новый пользователь</div>
+            <div class="form-group">
+                <label class="form-label">Имя *</label>
+                <input type="text" class="form-input" id="newUserName" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="display:flex;align-items:center;gap:8px;">
+                    <input type="checkbox" id="newUserAdmin"> Администратор
+                </label>
+            </div>
+            <button class="btn" onclick="doAddUser()">Создать</button>
+            <button class="btn btn-secondary" onclick="closeModal('addUserModal')">Отмена</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА: ДОСТУП К КОНТЕЙНЕРУ -->
+    <div class="modal" id="accessModal">
+        <div class="modal-content">
+            <div class="modal-header">&#128274; Доступ к контейнеру</div>
+            <div id="accessContainerName" style="font-weight:600;margin-bottom:15px;color:#4A90E2;"></div>
+            <div id="accessList"></div>
+            <div style="margin-top:15px;">
+                <label class="form-label">Добавить помощника</label>
+                <div style="display:flex;gap:8px;">
+                    <select class="form-select" id="accessUserSelect" style="flex:1;"><option value="">Выберите...</option></select>
+                    <button class="btn btn-small" onclick="doGrantAccess()" style="width:auto;padding:10px 14px;margin:0;">+</button>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="closeModal('accessModal')" style="margin-top:15px;">Закрыть</button>
+        </div>
+    </div>
+
+</div><!-- /appScreen -->
+
+<div class="toast" id="toast"></div>
+
+<script>
 const API_BASE = '/api';
 let state = { containers:[], items:[], categories:[], currentContainer:null, viewMode:'main', editingObject:null };
+let currentUser = null;
+let allUsers = [];
+let currentInviteLink = '';
+let activateToken = null;
+
+// ==================== АВТОРИЗАЦИЯ ====================
+
+function getAuthHeaders() {
+    return { 'Content-Type':'application/json', 'X-User-Id': currentUser ? currentUser.id : '' };
+}
+
+async function doLogin() {
+    const code = document.getElementById('loginCode').value.trim();
+    if (!code) { document.getElementById('loginError').textContent = 'Введите код'; return; }
+    try {
+        const r = await fetch(API_BASE + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code}) });
+        const d = await r.json();
+        if (!r.ok) { document.getElementById('loginError').textContent = d.error || 'Ошибка'; return; }
+        currentUser = d.user;
+        localStorage.setItem('skladito_userId', currentUser.id);
+        localStorage.setItem('skladito_userName', currentUser.name);
+        localStorage.setItem('skladito_isAdmin', currentUser.isAdmin ? '1' : '0');
+        showApp();
+    } catch(e) { document.getElementById('loginError').textContent = 'Сервер недоступен'; }
+}
+
+async function doActivate() {
+    const code = document.getElementById('activateCode').value.trim();
+    if (!code || code.length < 4) { document.getElementById('activateError').textContent = 'Код от 4 до 6 цифр'; return; }
+    if (!/^\d+$/.test(code)) { document.getElementById('activateError').textContent = 'Только цифры'; return; }
+    try {
+        const r = await fetch(API_BASE + '/auth/activate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({inviteToken: activateToken, code}) });
+        const d = await r.json();
+        if (!r.ok) { document.getElementById('activateError').textContent = d.error || 'Ошибка'; return; }
+        currentUser = d.user;
+        localStorage.setItem('skladito_userId', currentUser.id);
+        localStorage.setItem('skladito_userName', currentUser.name);
+        localStorage.setItem('skladito_isAdmin', currentUser.isAdmin ? '1' : '0');
+        // Remove token from URL
+        history.replaceState(null, '', window.location.pathname);
+        showApp();
+    } catch(e) { document.getElementById('activateError').textContent = 'Сервер недоступен'; }
+}
+
+function doLogout() {
+    closeBurgerMenu();
+    localStorage.removeItem('skladito_userId');
+    localStorage.removeItem('skladito_userName');
+    localStorage.removeItem('skladito_isAdmin');
+    currentUser = null;
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginCode').value = '';
+    document.getElementById('loginError').textContent = '';
+}
+
+function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('activateScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('burgerUserName').textContent = currentUser.name + (currentUser.isAdmin ? ' (админ)' : '');
+    if (currentUser.isAdmin) {
+        document.getElementById('burgerAdminSection').style.display = 'block';
+    } else {
+        document.getElementById('burgerAdminSection').style.display = 'none';
+    }
+    init();
+}
+
+async function checkInviteToken() {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('invite');
+    if (token) {
+        activateToken = token;
+        try {
+            const r = await fetch(API_BASE + '/auth/invite/' + token);
+            const d = await r.json();
+            if (!r.ok) {
+                document.getElementById('loginScreen').style.display = 'flex';
+                alert(d.error || 'Приглашение недействительно');
+                return;
+            }
+            document.getElementById('activateName').textContent = d.name;
+            document.getElementById('activateScreen').style.display = 'flex';
+        } catch(e) {
+            document.getElementById('loginScreen').style.display = 'flex';
+            alert('Сервер недоступен');
+        }
+        return;
+    }
+    // Проверить сохранённую сессию
+    const savedId = localStorage.getItem('skladito_userId');
+    if (savedId) {
+        currentUser = {
+            id: savedId,
+            name: localStorage.getItem('skladito_userName') || '?',
+            isAdmin: localStorage.getItem('skladito_isAdmin') === '1'
+        };
+        showApp();
+    } else {
+        document.getElementById('loginScreen').style.display = 'flex';
+    }
+}
+
+// Keypress enter на полях входа
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('loginCode').addEventListener('keydown', function(e) { if (e.key==='Enter') doLogin(); });
+    document.getElementById('activateCode').addEventListener('keydown', function(e) { if (e.key==='Enter') doActivate(); });
+    checkInviteToken();
+});
+
+// ==================== ОСНОВНОЕ ПРИЛОЖЕНИЕ ====================
 
 async function init() {
     try {
         updateStatus('Подключение...');
-        const health = await fetch(`${API_BASE}/health`);
+        const health = await fetch(API_BASE + '/health');
         const hd = await health.json();
         if (hd.status !== 'ok') throw new Error('Сервер недоступен');
-        updateStatus('✅ v' + hd.version);
-        document.getElementById('burgerStatus').textContent = '✅ Подключено v' + hd.version;
+        updateStatus('v' + hd.version);
+        document.getElementById('burgerStatus').textContent = 'v' + hd.version;
         await loadData();
         setupEventListeners();
         renderMain();
     } catch (error) {
         console.error(error);
         showError('Не удалось подключиться к серверу');
-        updateStatus('❌ Ошибка');
+        updateStatus('Ошибка');
     }
 }
 
 async function loadData() {
-    const r = await fetch(`${API_BASE}/sync`);
+    const r = await fetch(API_BASE + '/sync', { headers: getAuthHeaders() });
+    if (r.status === 401) { doLogout(); return; }
     const d = await r.json();
     state.containers = d.containers || [];
     state.items = d.items || [];
@@ -374,16 +609,19 @@ async function loadData() {
 }
 
 function updateStatus(msg) { const b=document.getElementById('burgerStatus'); if(b) b.textContent=msg; }
-function showError(msg) { document.getElementById('mainContent').innerHTML = `<div class="alert alert-error">${msg}</div>`; }
+function showError(msg) { document.getElementById('mainContent').innerHTML = '<div class="alert alert-error">'+msg+'</div>'; }
 
 function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
+    setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
 
+let listenersSetup = false;
 function setupEventListeners() {
+    if (listenersSetup) return;
+    listenersSetup = true;
     document.getElementById('backBtn').addEventListener('click', handleBack);
     document.getElementById('fabBtn').addEventListener('click', toggleFabMenu);
     document.getElementById('burgerBtn').addEventListener('click', openBurgerMenu);
@@ -392,11 +630,11 @@ function setupEventListeners() {
     document.getElementById('addItemForm').addEventListener('submit', handleAddItem);
     document.getElementById('editForm').addEventListener('submit', handleEdit);
     document.getElementById('deleteBtn').addEventListener('click', handleDelete);
-    document.getElementById('containerPhoto').addEventListener('change', (e) => previewPhoto(e, 'containerPhotoPreview'));
-    document.getElementById('itemPhoto').addEventListener('change', (e) => previewPhoto(e, 'itemPhotoPreview'));
-    document.addEventListener('click', (e) => {
-        const fab = document.getElementById('fabBtn');
-        const menu = document.getElementById('fabMenu');
+    document.getElementById('containerPhoto').addEventListener('change', function(e) { previewPhoto(e, 'containerPhotoPreview'); });
+    document.getElementById('itemPhoto').addEventListener('change', function(e) { previewPhoto(e, 'itemPhotoPreview'); });
+    document.addEventListener('click', function(e) {
+        var fab = document.getElementById('fabBtn');
+        var menu = document.getElementById('fabMenu');
         if (!fab.contains(e.target) && !menu.contains(e.target)) menu.classList.remove('active');
     });
 }
@@ -417,6 +655,11 @@ function openAddContainerModal() {
 function openAddItemModal() {
     document.getElementById('fabMenu').classList.remove('active');
     fillCategorySelect('itemCategory');
+    document.getElementById('itemName').value = '';
+    document.getElementById('itemQuantity').value = '1';
+    document.getElementById('itemMinQuantity').value = '0';
+    document.getElementById('itemPhoto').value = '';
+    document.getElementById('itemPhotoPreview').style.display = 'none';
     openModal('addItemModal');
 }
 
@@ -433,105 +676,104 @@ function renderMain() {
     document.getElementById('backBtn').style.display = 'none';
     document.getElementById('searchContainer').style.display = 'block';
     document.getElementById('fabBtn').style.display = 'block';
-    const root = state.containers.filter(c => !c.parent);
-    let html = '';
-    if (root.length > 0) { html += '<h3 style="margin:20px 0 12px 0;">Контейнеры</h3>'; root.forEach(c => html += renderContainerCard(c)); }
-    if (root.length === 0 && state.items.length === 0) { html += '<div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">Склад пуст</div><div>Нажмите + чтобы начать</div></div>'; }
+    var root = state.containers.filter(function(c) { return !c.parent; });
+    var html = '';
+    if (root.length > 0) { html += '<h3 style="margin:20px 0 12px 0;">Контейнеры</h3>'; root.forEach(function(c) { html += renderContainerCard(c); }); }
+    if (root.length === 0 && state.items.length === 0) { html += '<div class="empty-state"><div class="empty-state-icon">&#128230;</div><div class="empty-state-text">Склад пуст</div><div>Нажмите + чтобы начать</div></div>'; }
     document.getElementById('mainContent').innerHTML = html;
 }
 
 function renderContainerCard(container) {
-    const children = state.containers.filter(c => c.parent === container.id).length;
-    const items = state.items.filter(i => i.container === container.id).length;
-    const total = children + items;
-    const num = container.number || '?';
-    const thumb = container.photo ? `<img src="${container.photo}" class="card-thumb">` : `<div class="card-icon">📦</div>`;
-    return `
-        <div class="card" onclick="openContainer('${container.id}')">
-            <div class="card-header">
-                ${thumb}
-                <div class="card-title"><span style="color:#4A90E2;font-family:'Courier New',monospace;font-weight:700;">#${num}</span> ${container.name}</div>
-                ${total > 0 ? `<div class="card-badge">${total}</div>` : ''}
-            </div>
-            <div class="card-info">${children > 0 ? 'Контейнеров: '+children+' ' : ''}${items > 0 ? 'Предметов: '+items : ''}${total === 0 ? 'Пусто' : ''}</div>
-        </div>`;
+    var children = state.containers.filter(function(c) { return c.parent === container.id; }).length;
+    var items = state.items.filter(function(i) { return i.container === container.id; }).length;
+    var total = children + items;
+    var num = container.number || '?';
+    var thumb = container.photo ? '<img src="'+container.photo+'" class="card-thumb">' : '<div class="card-icon">&#128230;</div>';
+    return '<div class="card" onclick="openContainer(\''+container.id+'\')">' +
+        '<div class="card-header">' +
+            thumb +
+            '<div class="card-title"><span style="color:#4A90E2;font-family:\'Courier New\',monospace;font-weight:700;">#'+num+'</span> '+container.name+'</div>' +
+            (total > 0 ? '<div class="card-badge">'+total+'</div>' : '') +
+        '</div>' +
+        '<div class="card-info">'+(children > 0 ? 'Контейнеров: '+children+' ' : '')+(items > 0 ? 'Предметов: '+items : '')+(total === 0 ? 'Пусто' : '')+'</div>' +
+    '</div>';
 }
 
 function renderItemCard(item) {
-    const cat = state.categories.find(c => c.id === item.category);
-    const belowMin = item.minQuantity > 0 && item.quantity < item.minQuantity;
-    const thumb = item.photo ? `<img src="${item.photo}" class="card-thumb">` : `<div class="card-icon">${cat ? cat.icon : '📌'}</div>`;
-    let info = [];
-    if (cat) info.push(`${cat.icon} ${cat.name}`);
-    if (belowMin) info.push(`<span style="color:#dc3545;font-weight:600;">⚠️ Нужно купить (мин: ${item.minQuantity})</span>`);
-    return `
-        <div class="card" onclick="editItem('${item.id}')" ${belowMin ? 'style="border-left:4px solid #dc3545;"' : ''}>
-            <div class="card-header">
-                ${thumb}
-                <div class="card-title">${item.name}</div>
-                <div class="card-badge" ${belowMin ? 'style="background:#dc3545;"' : ''}>×${item.quantity}</div>
-            </div>
-            ${info.length > 0 ? `<div class="card-info">${info.join(' · ')}</div>` : ''}
-        </div>`;
+    var cat = state.categories.find(function(c) { return c.id === item.category; });
+    var belowMin = item.minQuantity > 0 && item.quantity < item.minQuantity;
+    var thumb = item.photo ? '<img src="'+item.photo+'" class="card-thumb">' : '<div class="card-icon">'+(cat ? cat.icon : '&#128204;')+'</div>';
+    var info = [];
+    if (cat) info.push(cat.icon + ' ' + cat.name);
+    if (belowMin) info.push('<span style="color:#dc3545;font-weight:600;">&#9888;&#65039; Нужно купить (мин: '+item.minQuantity+')</span>');
+    return '<div class="card" onclick="editItem(\''+item.id+'\')" '+(belowMin ? 'style="border-left:4px solid #dc3545;"' : '')+'>' +
+        '<div class="card-header">' +
+            thumb +
+            '<div class="card-title">'+item.name+'</div>' +
+            '<div class="card-badge" '+(belowMin ? 'style="background:#dc3545;"' : '')+'>x'+item.quantity+'</div>' +
+        '</div>' +
+        (info.length > 0 ? '<div class="card-info">'+info.join(' &middot; ')+'</div>' : '') +
+    '</div>';
 }
 
 function openContainer(containerId) {
     state.viewMode = 'container'; state.currentContainer = containerId;
-    const container = state.containers.find(c => c.id === containerId);
+    var container = state.containers.find(function(c) { return c.id === containerId; });
     if (!container) return;
     document.getElementById('breadcrumbs').textContent = getContainerPath(containerId);
     document.getElementById('breadcrumbsBar').style.display = 'block';
     document.getElementById('backBtn').style.display = 'block';
     document.getElementById('searchContainer').style.display = 'none';
     document.getElementById('fabBtn').style.display = 'block';
-    const childContainers = state.containers.filter(c => c.parent === containerId);
-    const items = state.items.filter(i => i.container === containerId);
-    let html = `
-        <div class="card" style="padding:12px;">
-            <div class="card-header" style="margin-bottom:0;">
-                ${container.photo ? `<img src="${container.photo}" class="card-thumb">` : `<div class="card-icon">📦</div>`}
-                <div class="card-title"><span style="color:#4A90E2;font-family:'Courier New',monospace;font-weight:700;">#${container.number||'?'}</span> ${container.name}</div>
-            </div>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-                <button onclick="editContainer('${containerId}')" style="flex:1;padding:10px;border:none;border-radius:10px;background:#4A90E2;color:white;font-size:18px;cursor:pointer;">✏️</button>
-                <button onclick="showQRCode('${containerId}')" style="flex:1;padding:10px;border:none;border-radius:10px;background:#28a745;color:white;font-size:18px;cursor:pointer;">QR</button>
-                <button onclick="openScannerModal()" style="flex:1;padding:10px;border:none;border-radius:10px;background:#fd7e14;color:white;font-size:18px;cursor:pointer;">📷</button>
-            </div>
-        </div>`;
-    if (childContainers.length > 0) { html += '<h3 style="margin:20px 0 12px 0;">Контейнеры</h3>'; childContainers.forEach(c => html += renderContainerCard(c)); }
-    if (items.length > 0) { html += '<h3 style="margin:20px 0 12px 0;">Предметы</h3>'; items.forEach(i => html += renderItemCard(i)); }
-    if (childContainers.length === 0 && items.length === 0) { html += '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Контейнер пуст</div></div>'; }
+    var childContainers = state.containers.filter(function(c) { return c.parent === containerId; });
+    var items = state.items.filter(function(i) { return i.container === containerId; });
+    var isOwner = currentUser && (container.ownerId === currentUser.id || currentUser.isAdmin);
+    var html = '<div class="card" style="padding:12px;">' +
+        '<div class="card-header" style="margin-bottom:0;">' +
+            (container.photo ? '<img src="'+container.photo+'" class="card-thumb">' : '<div class="card-icon">&#128230;</div>') +
+            '<div class="card-title"><span style="color:#4A90E2;font-family:\'Courier New\',monospace;font-weight:700;">#'+(container.number||'?')+'</span> '+container.name+'</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;margin-top:10px;">' +
+            '<button onclick="editContainer(\''+containerId+'\')" style="flex:1;padding:10px;border:none;border-radius:10px;background:#4A90E2;color:white;font-size:18px;cursor:pointer;">&#9999;&#65039;</button>' +
+            '<button onclick="showQRCode(\''+containerId+'\')" style="flex:1;padding:10px;border:none;border-radius:10px;background:#28a745;color:white;font-size:18px;cursor:pointer;">QR</button>' +
+            '<button onclick="openScannerModal()" style="flex:1;padding:10px;border:none;border-radius:10px;background:#fd7e14;color:white;font-size:18px;cursor:pointer;">&#128247;</button>' +
+            (isOwner ? '<button onclick="openAccessModal(\''+containerId+'\')" style="flex:1;padding:10px;border:none;border-radius:10px;background:#6f42c1;color:white;font-size:18px;cursor:pointer;">&#128274;</button>' : '') +
+        '</div>' +
+    '</div>';
+    if (childContainers.length > 0) { html += '<h3 style="margin:20px 0 12px 0;">Контейнеры</h3>'; childContainers.forEach(function(c) { html += renderContainerCard(c); }); }
+    if (items.length > 0) { html += '<h3 style="margin:20px 0 12px 0;">Предметы</h3>'; items.forEach(function(i) { html += renderItemCard(i); }); }
+    if (childContainers.length === 0 && items.length === 0) { html += '<div class="empty-state"><div class="empty-state-icon">&#128237;</div><div class="empty-state-text">Контейнер пуст</div></div>'; }
     document.getElementById('mainContent').innerHTML = html;
 }
 
 function showCategory(categoryId) {
     state.viewMode = 'category';
-    const cat = state.categories.find(c => c.id === categoryId);
+    var cat = state.categories.find(function(c) { return c.id === categoryId; });
     if (!cat) return;
-    document.getElementById('breadcrumbs').textContent = `Категория: ${cat.name}`;
+    document.getElementById('breadcrumbs').textContent = 'Категория: ' + cat.name;
     document.getElementById('breadcrumbsBar').style.display = 'block';
     document.getElementById('backBtn').style.display = 'block';
     document.getElementById('searchContainer').style.display = 'none';
     document.getElementById('fabBtn').style.display = 'none';
-    const items = state.items.filter(i => i.category === categoryId);
-    let html = `<h2 style="margin-bottom:20px;">${cat.icon} ${cat.name}</h2>`;
-    if (items.length > 0) { items.forEach(item => { const c = state.containers.find(cc => cc.id === item.container); let ih = renderItemCard(item); if (c) ih = ih.replace('</div>','<div class="card-info">📍 '+getContainerPath(c.id)+'</div></div>'); html += ih; }); }
-    else { html += '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Нет предметов</div></div>'; }
+    var items = state.items.filter(function(i) { return i.category === categoryId; });
+    var html = '<h2 style="margin-bottom:20px;">'+cat.icon+' '+cat.name+'</h2>';
+    if (items.length > 0) { items.forEach(function(item) { var c = state.containers.find(function(cc) { return cc.id === item.container; }); var ih = renderItemCard(item); if (c) ih = ih.replace('</div>','<div class="card-info">&#128205; '+getContainerPath(c.id)+'</div></div>'); html += ih; }); }
+    else { html += '<div class="empty-state"><div class="empty-state-icon">&#128269;</div><div class="empty-state-text">Нет предметов</div></div>'; }
     document.getElementById('mainContent').innerHTML = html;
 }
 
 // ==================== КАТЕГОРИИ ====================
 
 function renderCategoriesList() {
-    let html = '';
-    state.categories.forEach(cat => {
-        const count = state.items.filter(i => i.category === cat.id).length;
-        html += `<div style="display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">
-            <span style="font-size:28px;margin-right:12px;cursor:pointer;" onclick="changeCategoryIcon('${cat.id}')">${cat.icon}</span>
-            <div style="flex:1;cursor:pointer;" onclick="showCategoryFromList('${cat.id}')"><div style="font-weight:600;">${cat.name}</div><div style="font-size:12px;color:#999;">Предметов: ${count}</div></div>
-            <button onclick="renameCategoryPrompt('${cat.id}')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:5px;">✏️</button>
-            <button onclick="deleteCategoryPrompt('${cat.id}')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:5px;">🗑️</button>
-        </div>`;
+    var html = '';
+    state.categories.forEach(function(cat) {
+        var count = state.items.filter(function(i) { return i.category === cat.id; }).length;
+        html += '<div style="display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">' +
+            '<span style="font-size:28px;margin-right:12px;cursor:pointer;" onclick="changeCategoryIcon(\''+cat.id+'\')">'+cat.icon+'</span>' +
+            '<div style="flex:1;cursor:pointer;" onclick="showCategoryFromList(\''+cat.id+'\')"><div style="font-weight:600;">'+cat.name+'</div><div style="font-size:12px;color:#999;">Предметов: '+count+'</div></div>' +
+            '<button onclick="renameCategoryPrompt(\''+cat.id+'\')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:5px;">&#9999;&#65039;</button>' +
+            '<button onclick="deleteCategoryPrompt(\''+cat.id+'\')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:5px;">&#128465;&#65039;</button>' +
+        '</div>';
     });
     if (state.categories.length === 0) html = '<div style="text-align:center;color:#999;padding:20px;">Нет категорий</div>';
     document.getElementById('categoriesList').innerHTML = html;
@@ -540,51 +782,51 @@ function renderCategoriesList() {
 function showCategoryFromList(id) { closeModal('categoriesModal'); showCategory(id); }
 
 function fillCategorySelect(selectId) {
-    const sel = document.getElementById(selectId || 'itemCategory');
-    const val = sel.value;
+    var sel = document.getElementById(selectId || 'itemCategory');
+    var val = sel.value;
     sel.innerHTML = '<option value="">Без категории</option>';
-    state.categories.forEach(c => { sel.innerHTML += `<option value="${c.id}" ${c.id===val?'selected':''}>${c.icon} ${c.name}</option>`; });
+    state.categories.forEach(function(c) { sel.innerHTML += '<option value="'+c.id+'" '+(c.id===val?'selected':'')+'>'+c.icon+' '+c.name+'</option>'; });
 }
 
 function showNewCategoryInput(ctx) { document.getElementById('newCategory'+(ctx==='item'?'Item':'Edit')).style.display='block'; }
 function hideNewCategoryInput(ctx) { document.getElementById('newCategory'+(ctx==='item'?'Item':'Edit')).style.display='none'; }
 
 async function addNewCategory(ctx) {
-    const inputId = 'newCategoryName'+(ctx==='item'?'Item':'Edit');
-    const selectId = ctx==='item'?'itemCategory':'editCategory';
-    const name = document.getElementById(inputId).value.trim();
+    var inputId = 'newCategoryName'+(ctx==='item'?'Item':'Edit');
+    var selectId = ctx==='item'?'itemCategory':'editCategory';
+    var name = document.getElementById(inputId).value.trim();
     if (!name) { showToast('Введите название'); return; }
-    const newCat = { id:'cat'+Date.now(), name, icon:'📂', order:state.categories.length };
+    var newCat = { id:'cat'+Date.now(), name:name, icon:'&#128194;', order:state.categories.length };
     try {
-        await fetch(`${API_BASE}/categories`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newCat) });
+        await fetch(API_BASE+'/categories', { method:'POST', headers:getAuthHeaders(), body:JSON.stringify(newCat) });
         await loadData();
         fillCategorySelect(selectId);
         document.getElementById(selectId).value = newCat.id;
         hideNewCategoryInput(ctx);
-        showToast(`Категория "${name}" добавлена!`);
+        showToast('Категория "'+name+'" добавлена!');
     } catch(e) { alert('Ошибка: '+e.message); }
 }
 
 async function addCategoryFromModal() {
-    const name = document.getElementById('newCategoryNameModal').value.trim();
+    var name = document.getElementById('newCategoryNameModal').value.trim();
     if (!name) { showToast('Введите название'); return; }
-    const newCat = { id:'cat'+Date.now(), name, icon:'📂', order:state.categories.length };
+    var newCat = { id:'cat'+Date.now(), name:name, icon:'&#128194;', order:state.categories.length };
     try {
-        await fetch(`${API_BASE}/categories`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newCat) });
+        await fetch(API_BASE+'/categories', { method:'POST', headers:getAuthHeaders(), body:JSON.stringify(newCat) });
         await loadData();
         document.getElementById('newCategoryNameModal').value = '';
         renderCategoriesList();
-        showToast(`Категория "${name}" добавлена!`);
+        showToast('Категория "'+name+'" добавлена!');
     } catch(e) { alert('Ошибка: '+e.message); }
 }
 
 async function deleteCategoryPrompt(catId) {
-    const cat = state.categories.find(c => c.id === catId);
+    var cat = state.categories.find(function(c) { return c.id === catId; });
     if (!cat) return;
-    const count = state.items.filter(i => i.category === catId).length;
-    if (!confirm(`Удалить "${cat.name}"?${count>0?' У '+count+' предметов будет снята категория.':''}`)) return;
+    var count = state.items.filter(function(i) { return i.category === catId; }).length;
+    if (!confirm('Удалить "'+cat.name+'"?'+(count>0?' У '+count+' предметов будет снята категория.':''))) return;
     try {
-        await fetch(`${API_BASE}/categories/${catId}`, { method:'DELETE' });
+        await fetch(API_BASE+'/categories/'+catId, { method:'DELETE', headers:getAuthHeaders() });
         await loadData();
         renderCategoriesList();
         showToast('Категория удалена');
@@ -592,13 +834,13 @@ async function deleteCategoryPrompt(catId) {
 }
 
 async function renameCategoryPrompt(catId) {
-    const cat = state.categories.find(c => c.id === catId);
+    var cat = state.categories.find(function(c) { return c.id === catId; });
     if (!cat) return;
-    const newName = prompt('Новое название:', cat.name);
+    var newName = prompt('Новое название:', cat.name);
     if (!newName || !newName.trim()) return;
     cat.name = newName.trim();
     try {
-        await fetch(`${API_BASE}/categories/${catId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cat) });
+        await fetch(API_BASE+'/categories/'+catId, { method:'PUT', headers:getAuthHeaders(), body:JSON.stringify(cat) });
         await loadData();
         renderCategoriesList();
         showToast('Категория переименована');
@@ -606,22 +848,22 @@ async function renameCategoryPrompt(catId) {
 }
 
 function changeCategoryIcon(catId) {
-    const cat = state.categories.find(c => c.id === catId);
+    var cat = state.categories.find(function(c) { return c.id === catId; });
     if (!cat) return;
-    const icons = ['📂','🔧','📝','🏠','⚡','👕','🎮','🍳','💊','🧴','🧹','📚','🎨','🏋️','🔑','🪴','🧸','🎁','🛠️','🧲','📦','🥫','🧻','💡','🔌','🧤','👟','🎒','🧳','📷'];
-    let html = '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;">';
-    icons.forEach(icon => { html += `<span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px;${icon===cat.icon?'background:#4A90E233;':''}" onclick="setCategoryIcon('${catId}','${icon}')">${icon}</span>`; });
+    var icons = ['\u{1F4C2}','\u{1F527}','\u{1F4DD}','\u{1F3E0}','\u26A1','\u{1F455}','\u{1F3AE}','\u{1F373}','\u{1F48A}','\u{1F9F4}','\u{1F9F9}','\u{1F4DA}','\u{1F3A8}','\u{1F3CB}\uFE0F','\u{1F511}','\u{1FAB4}','\u{1F9F8}','\u{1F381}','\u{1F6E0}\uFE0F','\u{1F9F2}','\u{1F4E6}','\u{1F96B}','\u{1F9FB}','\u{1F4A1}','\u{1F50C}','\u{1F9E4}','\u{1F45F}','\u{1F392}','\u{1F9F3}','\u{1F4F7}'];
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;">';
+    icons.forEach(function(icon) { html += '<span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px;'+(icon===cat.icon?'background:#4A90E233;':'')+'" onclick="setCategoryIcon(\''+catId+'\',\''+icon+'\')">'+icon+'</span>'; });
     html += '</div>';
     document.getElementById('categoriesList').innerHTML = html;
 }
 
 async function setCategoryIcon(catId, icon) {
     if (!icon) return;
-    const cat = state.categories.find(c => c.id === catId);
+    var cat = state.categories.find(function(c) { return c.id === catId; });
     if (!cat) return;
     cat.icon = icon;
     try {
-        await fetch(`${API_BASE}/categories/${catId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cat) });
+        await fetch(API_BASE+'/categories/'+catId, { method:'PUT', headers:getAuthHeaders(), body:JSON.stringify(cat) });
         await loadData();
         renderCategoriesList();
         showToast('Иконка изменена');
@@ -631,19 +873,19 @@ async function setCategoryIcon(catId, icon) {
 // ==================== НОМЕРА КОНТЕЙНЕРОВ ====================
 
 function getNextContainerNumber(parentId) {
-    const siblings = state.containers.filter(c => c.parent === parentId);
-    const used = siblings.map(c => parseInt(c.number) || 0);
-    let next = 1; while (used.includes(next)) next++;
+    var siblings = state.containers.filter(function(c) { return c.parent === parentId; });
+    var used = siblings.map(function(c) { return parseInt(c.number) || 0; });
+    var next = 1; while (used.includes(next)) next++;
     return String(next).padStart(4, '0');
 }
 
 function isNumberUnique(number, parentId, excludeId) {
-    return !state.containers.filter(c => c.parent === parentId && c.id !== excludeId).some(c => c.number === number);
+    return !state.containers.filter(function(c) { return c.parent === parentId && c.id !== excludeId; }).some(function(c) { return c.number === number; });
 }
 
 function getDescendantIds(containerId) {
-    let ids = [];
-    state.containers.filter(c => c.parent === containerId).forEach(child => { ids.push(child.id); ids = ids.concat(getDescendantIds(child.id)); });
+    var ids = [];
+    state.containers.filter(function(c) { return c.parent === containerId; }).forEach(function(child) { ids.push(child.id); ids = ids.concat(getDescendantIds(child.id)); });
     return ids;
 }
 
@@ -651,16 +893,16 @@ function getDescendantIds(containerId) {
 
 async function handleAddContainer(e) {
     e.preventDefault();
-    const name = document.getElementById('containerName').value;
-    const numberRaw = document.getElementById('containerNumber').value;
-    const number = String(parseInt(numberRaw)||1).padStart(4,'0');
-    if (!isNumberUnique(number, state.currentContainer, null)) { showToast(`Номер ${number} уже занят!`); return; }
-    const photoFile = document.getElementById('containerPhoto').files[0];
-    let photo = null;
+    var name = document.getElementById('containerName').value;
+    var numberRaw = document.getElementById('containerNumber').value;
+    var number = String(parseInt(numberRaw)||1).padStart(4,'0');
+    if (!isNumberUnique(number, state.currentContainer, null)) { showToast('Номер '+number+' уже занят!'); return; }
+    var photoFile = document.getElementById('containerPhoto').files[0];
+    var photo = null;
     if (photoFile) photo = await fileToBase64(photoFile);
-    const container = { id:'c'+Date.now(), number, name, photo, parent:state.currentContainer, created:new Date().toISOString() };
+    var container = { id:'c'+Date.now(), number:number, name:name, photo:photo, parent:state.currentContainer, created:new Date().toISOString() };
     try {
-        const r = await fetch(`${API_BASE}/containers`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(container) });
+        var r = await fetch(API_BASE+'/containers', { method:'POST', headers:getAuthHeaders(), body:JSON.stringify(container) });
         if (!r.ok) throw new Error('Ошибка создания');
         await loadData(); closeModal('addContainerModal');
         if (state.currentContainer) openContainer(state.currentContainer); else renderMain();
@@ -669,104 +911,98 @@ async function handleAddContainer(e) {
 
 async function handleAddItem(e) {
     e.preventDefault();
-    const name = document.getElementById('itemName').value;
-    const quantity = parseInt(document.getElementById('itemQuantity').value);
-    const minQuantity = parseInt(document.getElementById('itemMinQuantity').value)||0;
-    const category = document.getElementById('itemCategory').value||null;
-    const photoFile = document.getElementById('itemPhoto').files[0];
-    let photo = null;
+    var name = document.getElementById('itemName').value;
+    var quantity = parseInt(document.getElementById('itemQuantity').value);
+    var minQuantity = parseInt(document.getElementById('itemMinQuantity').value)||0;
+    var category = document.getElementById('itemCategory').value||null;
+    var photoFile = document.getElementById('itemPhoto').files[0];
+    var photo = null;
     if (photoFile) photo = await fileToBase64(photoFile);
-    const item = { id:'i'+Date.now(), name, quantity, minQuantity, category, photo, container:state.currentContainer, created:new Date().toISOString() };
+    var item = { id:'i'+Date.now(), name:name, quantity:quantity, minQuantity:minQuantity, category:category, photo:photo, container:state.currentContainer, created:new Date().toISOString() };
     try {
-        const r = await fetch(`${API_BASE}/items`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item) });
+        var r = await fetch(API_BASE+'/items', { method:'POST', headers:getAuthHeaders(), body:JSON.stringify(item) });
         if (!r.ok) throw new Error('Ошибка создания');
         await loadData(); closeModal('addItemModal'); openContainer(state.currentContainer);
     } catch(e) { alert('Ошибка: '+e.message); }
 }
 
 function editContainer(containerId) {
-    const container = state.containers.find(c => c.id === containerId);
+    var container = state.containers.find(function(c) { return c.id === containerId; });
     if (!container) return;
-    state.editingObject = { type:'container', data:{...container} };
+    state.editingObject = { type:'container', data:Object.assign({},container) };
     document.getElementById('editModalTitle').textContent = 'Редактировать контейнер';
-    const descendants = getDescendantIds(containerId);
-    const possibleParents = state.containers.filter(c => c.id !== containerId && !descendants.includes(c.id));
-    let html = `
-        <input type="hidden" id="editType" value="container">
-        <input type="hidden" id="editId" value="${container.id}">
-        <div class="form-group"><label class="form-label">Номер</label>
-            <input type="text" class="form-input" id="editNumber" value="${container.number||''}" maxlength="4" style="font-size:24px;text-align:center;font-weight:700;letter-spacing:4px;width:120px;">
-        </div>
-        <div class="form-group"><label class="form-label">Название</label>
-            <input type="text" class="form-input" id="editName" value="${container.name}" required>
-        </div>
-        <div class="form-group"><label class="form-label">📍 Расположение</label>
-            <select class="form-select" id="editParent">
-                <option value="" ${!container.parent?'selected':''}>🏠 Главная (корень)</option>
-                ${possibleParents.map(c => `<option value="${c.id}" ${c.id===container.parent?'selected':''}>${c.number?'#'+c.number+' ':''}${c.name}</option>`).join('')}
-            </select>
-        </div>`;
-    if (container.photo) { html += `<div class="form-group"><label class="form-label">Фото</label><img src="${container.photo}" class="photo-preview" id="editPhotoPreview"><div class="photo-actions"><button type="button" class="btn-small" onclick="document.getElementById('editPhotoInput').click()">Заменить</button><button type="button" class="btn-small btn-danger" onclick="deletePhoto()">Удалить</button></div></div>`; }
-    else { html += `<div class="form-group"><label class="form-label">Фото</label><div class="photo-upload-btn" onclick="document.getElementById('editPhotoInput').click()">📷 Добавить фото</div><img id="editPhotoPreview" class="photo-preview" style="display:none;"></div>`; }
+    var descendants = getDescendantIds(containerId);
+    var possibleParents = state.containers.filter(function(c) { return c.id !== containerId && !descendants.includes(c.id); });
+    var html = '<input type="hidden" id="editType" value="container">' +
+        '<input type="hidden" id="editId" value="'+container.id+'">' +
+        '<div class="form-group"><label class="form-label">Номер</label>' +
+            '<input type="text" class="form-input" id="editNumber" value="'+(container.number||'')+'" maxlength="4" style="font-size:24px;text-align:center;font-weight:700;letter-spacing:4px;width:120px;"></div>' +
+        '<div class="form-group"><label class="form-label">Название</label>' +
+            '<input type="text" class="form-input" id="editName" value="'+container.name+'" required></div>' +
+        '<div class="form-group"><label class="form-label">&#128205; Расположение</label>' +
+            '<select class="form-select" id="editParent"><option value="" '+(!container.parent?'selected':'')+'>&#127968; Главная (корень)</option>' +
+            possibleParents.map(function(c) { return '<option value="'+c.id+'" '+(c.id===container.parent?'selected':'')+'>'+(c.number?'#'+c.number+' ':'')+c.name+'</option>'; }).join('') +
+        '</select></div>';
+    if (container.photo) { html += '<div class="form-group"><label class="form-label">Фото</label><img src="'+container.photo+'" class="photo-preview" id="editPhotoPreview"><div class="photo-actions"><button type="button" class="btn-small" onclick="document.getElementById(\'editPhotoInput\').click()">Заменить</button><button type="button" class="btn-small btn-danger" onclick="deletePhoto()">Удалить</button></div></div>'; }
+    else { html += '<div class="form-group"><label class="form-label">Фото</label><div class="photo-upload-btn" onclick="document.getElementById(\'editPhotoInput\').click()">&#128247; Добавить фото</div><img id="editPhotoPreview" class="photo-preview" style="display:none;"></div>'; }
     html += '<input type="file" class="photo-upload" id="editPhotoInput" accept="image/*">';
     document.getElementById('editFormContent').innerHTML = html;
-    document.getElementById('editPhotoInput').addEventListener('change', (e) => previewPhoto(e, 'editPhotoPreview'));
+    document.getElementById('editPhotoInput').addEventListener('change', function(e) { previewPhoto(e, 'editPhotoPreview'); });
     openModal('editModal');
 }
 
 function editItem(itemId) {
-    const item = state.items.find(i => i.id === itemId);
+    var item = state.items.find(function(i) { return i.id === itemId; });
     if (!item) return;
-    state.editingObject = { type:'item', data:{...item} };
+    state.editingObject = { type:'item', data:Object.assign({},item) };
     document.getElementById('editModalTitle').textContent = 'Редактировать предмет';
-    let html = `
-        <input type="hidden" id="editType" value="item"><input type="hidden" id="editId" value="${item.id}">
-        <div class="form-group"><label class="form-label">Название</label><input type="text" class="form-input" id="editName" value="${item.name}" required></div>
-        <div class="form-group"><label class="form-label">Количество</label><input type="number" class="form-input" id="editQuantity" value="${item.quantity}" min="0" required></div>
-        <div class="form-group"><label class="form-label">Мин. количество</label><input type="number" class="form-input" id="editMinQuantity" value="${item.minQuantity||0}" min="0"></div>
-        <div class="form-group"><label class="form-label">Категория</label>
-            <div style="display:flex;gap:8px;">
-                <select class="form-select" id="editCategory" style="flex:1;"><option value="">Без категории</option>${state.categories.map(c=>`<option value="${c.id}" ${c.id===item.category?'selected':''}>${c.icon} ${c.name}</option>`).join('')}</select>
-                <button type="button" class="btn btn-small" onclick="showNewCategoryInput('edit')" style="width:auto;padding:10px 14px;margin:0;white-space:nowrap;">+ Новая</button>
-            </div>
-            <div id="newCategoryEdit" style="display:none;margin-top:8px;"><div style="display:flex;gap:8px;"><input type="text" class="form-input" id="newCategoryNameEdit" placeholder="Название" style="flex:1;"><button type="button" class="btn btn-small" onclick="addNewCategory('edit')" style="width:auto;padding:10px 14px;margin:0;">✓</button><button type="button" class="btn btn-small btn-secondary" onclick="hideNewCategoryInput('edit')" style="width:auto;padding:10px 14px;margin:0;">✕</button></div></div>
-        </div>`;
-    if (item.photo) { html += `<div class="form-group"><label class="form-label">Фото</label><img src="${item.photo}" class="photo-preview" id="editPhotoPreview"><div class="photo-actions"><button type="button" class="btn-small" onclick="document.getElementById('editPhotoInput').click()">Заменить</button><button type="button" class="btn-small btn-danger" onclick="deletePhoto()">Удалить</button></div></div>`; }
-    else { html += `<div class="form-group"><label class="form-label">Фото</label><div class="photo-upload-btn" onclick="document.getElementById('editPhotoInput').click()">📷 Добавить фото</div><img id="editPhotoPreview" class="photo-preview" style="display:none;"></div>`; }
+    var html = '<input type="hidden" id="editType" value="item"><input type="hidden" id="editId" value="'+item.id+'">' +
+        '<div class="form-group"><label class="form-label">Название</label><input type="text" class="form-input" id="editName" value="'+item.name+'" required></div>' +
+        '<div class="form-group"><label class="form-label">Количество</label><input type="number" class="form-input" id="editQuantity" value="'+item.quantity+'" min="0" required></div>' +
+        '<div class="form-group"><label class="form-label">Мин. количество</label><input type="number" class="form-input" id="editMinQuantity" value="'+(item.minQuantity||0)+'" min="0"></div>' +
+        '<div class="form-group"><label class="form-label">Категория</label>' +
+            '<div style="display:flex;gap:8px;">' +
+                '<select class="form-select" id="editCategory" style="flex:1;"><option value="">Без категории</option>'+state.categories.map(function(c){return '<option value="'+c.id+'" '+(c.id===item.category?'selected':'')+'>'+c.icon+' '+c.name+'</option>';}).join('')+'</select>' +
+                '<button type="button" class="btn btn-small" onclick="showNewCategoryInput(\'edit\')" style="width:auto;padding:10px 14px;margin:0;white-space:nowrap;">+ Новая</button>' +
+            '</div>' +
+            '<div id="newCategoryEdit" style="display:none;margin-top:8px;"><div style="display:flex;gap:8px;"><input type="text" class="form-input" id="newCategoryNameEdit" placeholder="Название" style="flex:1;"><button type="button" class="btn btn-small" onclick="addNewCategory(\'edit\')" style="width:auto;padding:10px 14px;margin:0;">&#10003;</button><button type="button" class="btn btn-small btn-secondary" onclick="hideNewCategoryInput(\'edit\')" style="width:auto;padding:10px 14px;margin:0;">&#10005;</button></div></div>' +
+        '</div>';
+    if (item.photo) { html += '<div class="form-group"><label class="form-label">Фото</label><img src="'+item.photo+'" class="photo-preview" id="editPhotoPreview"><div class="photo-actions"><button type="button" class="btn-small" onclick="document.getElementById(\'editPhotoInput\').click()">Заменить</button><button type="button" class="btn-small btn-danger" onclick="deletePhoto()">Удалить</button></div></div>'; }
+    else { html += '<div class="form-group"><label class="form-label">Фото</label><div class="photo-upload-btn" onclick="document.getElementById(\'editPhotoInput\').click()">&#128247; Добавить фото</div><img id="editPhotoPreview" class="photo-preview" style="display:none;"></div>'; }
     html += '<input type="file" class="photo-upload" id="editPhotoInput" accept="image/*">';
     document.getElementById('editFormContent').innerHTML = html;
-    document.getElementById('editPhotoInput').addEventListener('change', (e) => previewPhoto(e, 'editPhotoPreview'));
+    document.getElementById('editPhotoInput').addEventListener('change', function(e) { previewPhoto(e, 'editPhotoPreview'); });
     openModal('editModal');
 }
 
-function deletePhoto() { const p=document.getElementById('editPhotoPreview'); p.style.display='none'; p.src=''; state.editingObject.data.photo=null; }
+function deletePhoto() { var p=document.getElementById('editPhotoPreview'); p.style.display='none'; p.src=''; state.editingObject.data.photo=null; }
 
 async function handleEdit(e) {
     e.preventDefault();
-    const type=document.getElementById('editType').value, id=document.getElementById('editId').value, name=document.getElementById('editName').value;
-    const photoInput=document.getElementById('editPhotoInput');
-    let newPhoto=null;
+    var type=document.getElementById('editType').value, id=document.getElementById('editId').value, name=document.getElementById('editName').value;
+    var photoInput=document.getElementById('editPhotoInput');
+    var newPhoto=null;
     if (photoInput.files[0]) newPhoto = await fileToBase64(photoInput.files[0]);
     try {
         if (type==='container') {
-            const c=state.containers.find(x=>x.id===id);
+            var c=state.containers.find(function(x){return x.id===id;});
             c.name=name;
-            const ni=document.getElementById('editNumber');
-            if (ni) { const nn=ni.value?String(parseInt(ni.value)).padStart(4,'0'):c.number; if(nn!==c.number&&!isNumberUnique(nn,c.parent,c.id)){showToast('Номер '+nn+' уже занят!');return;} c.number=nn; }
-            const ps=document.getElementById('editParent');
-            if (ps) { const np=ps.value||null; c.parent=np; }
+            var ni=document.getElementById('editNumber');
+            if (ni) { var nn=ni.value?String(parseInt(ni.value)).padStart(4,'0'):c.number; if(nn!==c.number&&!isNumberUnique(nn,c.parent,c.id)){showToast('Номер '+nn+' уже занят!');return;} c.number=nn; }
+            var ps=document.getElementById('editParent');
+            if (ps) { var np=ps.value||null; c.parent=np; }
             if (newPhoto) c.photo=newPhoto;
             if (state.editingObject.data.photo===null) c.photo=null;
-            const r=await fetch(`${API_BASE}/containers/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(c) });
+            var r=await fetch(API_BASE+'/containers/'+id, { method:'PUT', headers:getAuthHeaders(), body:JSON.stringify(c) });
             if (!r.ok) throw new Error('Ошибка');
         } else {
-            const item=state.items.find(x=>x.id===id);
+            var item=state.items.find(function(x){return x.id===id;});
             item.name=name; item.quantity=parseInt(document.getElementById('editQuantity').value); item.minQuantity=parseInt(document.getElementById('editMinQuantity').value)||0;
             item.category=document.getElementById('editCategory').value||null;
             if (newPhoto) item.photo=newPhoto;
             if (state.editingObject.data.photo===null) item.photo=null;
-            const r=await fetch(`${API_BASE}/items/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(item) });
-            if (!r.ok) throw new Error('Ошибка');
+            var r2=await fetch(API_BASE+'/items/'+id, { method:'PUT', headers:getAuthHeaders(), body:JSON.stringify(item) });
+            if (!r2.ok) throw new Error('Ошибка');
         }
         await loadData(); closeModal('editModal');
         if (state.viewMode==='container') openContainer(state.currentContainer); else renderMain();
@@ -775,14 +1011,14 @@ async function handleEdit(e) {
 
 async function handleDelete() {
     if (!confirm('Удалить? Это действие нельзя отменить.')) return;
-    const type=document.getElementById('editType').value, id=document.getElementById('editId').value;
+    var type=document.getElementById('editType').value, id=document.getElementById('editId').value;
     try {
         if (type==='container') {
-            const r=await fetch(`${API_BASE}/containers/${id}`, { method:'DELETE' });
-            if (!r.ok) { const e=await r.json(); throw new Error(e.error||'Ошибка'); }
+            var r=await fetch(API_BASE+'/containers/'+id, { method:'DELETE', headers:getAuthHeaders() });
+            if (!r.ok) { var e2=await r.json(); throw new Error(e2.error||'Ошибка'); }
         } else {
-            const r=await fetch(`${API_BASE}/items/${id}`, { method:'DELETE' });
-            if (!r.ok) throw new Error('Ошибка');
+            var r2=await fetch(API_BASE+'/items/'+id, { method:'DELETE', headers:getAuthHeaders() });
+            if (!r2.ok) throw new Error('Ошибка');
         }
         await loadData(); closeModal('editModal');
         if (state.viewMode==='container') openContainer(state.currentContainer); else renderMain();
@@ -792,24 +1028,24 @@ async function handleDelete() {
 // ==================== НАВИГАЦИЯ/ПОИСК ====================
 
 function handleBack() {
-    if (state.viewMode==='category') { renderMain(); return; }
+    if (state.viewMode==='category' || state.viewMode==='users') { renderMain(); return; }
     if (!state.currentContainer) { renderMain(); return; }
-    const c=state.containers.find(x=>x.id===state.currentContainer);
+    var c=state.containers.find(function(x){return x.id===state.currentContainer;});
     if (c&&c.parent) openContainer(c.parent); else renderMain();
 }
 
 function handleSearch(e) {
-    const q=e.target.value.toLowerCase().trim();
+    var q=e.target.value.toLowerCase().trim();
     if (q.length<2) { renderMain(); return; }
     state.viewMode='search';
     document.getElementById('backBtn').style.display='block';
     document.getElementById('fabBtn').style.display='none';
-    const foundC=state.containers.filter(c=>c.name.toLowerCase().includes(q));
-    const foundI=state.items.filter(i=>i.name.toLowerCase().includes(q));
-    let html=`<h3 style="margin:20px 0 12px 0;">Результаты: ${foundC.length+foundI.length}</h3>`;
-    foundC.forEach(c=>html+=renderContainerCard(c));
-    foundI.forEach(i=>{let ih=renderItemCard(i);const c=state.containers.find(x=>x.id===i.container);if(c)ih=ih.replace('</div>','<div class="card-info">📍 '+getContainerPath(c.id)+'</div></div>');html+=ih;});
-    if(foundC.length===0&&foundI.length===0) html+='<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Ничего не найдено</div></div>';
+    var foundC=state.containers.filter(function(c){return c.name.toLowerCase().includes(q);});
+    var foundI=state.items.filter(function(i){return i.name.toLowerCase().includes(q);});
+    var html='<h3 style="margin:20px 0 12px 0;">Результаты: '+(foundC.length+foundI.length)+'</h3>';
+    foundC.forEach(function(c){html+=renderContainerCard(c);});
+    foundI.forEach(function(i){var ih=renderItemCard(i);var c=state.containers.find(function(x){return x.id===i.container;});if(c)ih=ih.replace('</div>','<div class="card-info">&#128205; '+getContainerPath(c.id)+'</div></div>');html+=ih;});
+    if(foundC.length===0&&foundI.length===0) html+='<div class="empty-state"><div class="empty-state-icon">&#128269;</div><div class="empty-state-text">Ничего не найдено</div></div>';
     document.getElementById('mainContent').innerHTML=html;
 }
 
@@ -817,27 +1053,27 @@ function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
 function previewPhoto(e, previewId) {
-    const file=e.target.files[0]; if (!file) return;
-    const reader=new FileReader();
-    reader.onload=function(ev){ const img=document.getElementById(previewId); img.src=ev.target.result; img.style.display='block'; };
+    var file=e.target.files[0]; if (!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){ var img=document.getElementById(previewId); img.src=ev.target.result; img.style.display='block'; };
     reader.readAsDataURL(file);
 }
 
 function getContainerPath(containerId) {
-    const c=state.containers.find(x=>x.id===containerId);
+    var c=state.containers.find(function(x){return x.id===containerId;});
     if (!c) return '';
-    let path=c.name, cur=c;
-    while(cur.parent){ const p=state.containers.find(x=>x.id===cur.parent); if(!p)break; path=p.name+' > '+path; cur=p; }
+    var path=c.name, cur=c;
+    while(cur.parent){ var p=state.containers.find(function(x){return x.id===cur.parent;}); if(!p)break; path=p.name+' > '+path; cur=p; }
     return 'Главная > '+path;
 }
 
-function fileToBase64(file) { return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+function fileToBase64(file) { return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(r.result);}; r.onerror=rej; r.readAsDataURL(file); }); }
 
 // ==================== QR-КОД ====================
 
 function showQRCode(containerId) {
-    const c=state.containers.find(x=>x.id===containerId); if(!c)return;
-    const qc=document.getElementById('qrCodeContainer'); qc.innerHTML='';
+    var c=state.containers.find(function(x){return x.id===containerId;}); if(!c)return;
+    var qc=document.getElementById('qrCodeContainer'); qc.innerHTML='';
     new QRCode(qc, { text:c.id, width:200, height:200, colorDark:'#333', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.M });
     document.getElementById('qrNumber').textContent=c.number||'----';
     document.getElementById('qrName').textContent=c.name;
@@ -845,14 +1081,14 @@ function showQRCode(containerId) {
 }
 
 function printQrCard() {
-    const w=window.open('','','width=400,height=500');
-    w.document.write(`<html><head><title>QR</title><style>body{margin:0;padding:20px;text-align:center;font-family:Arial,sans-serif;}.number{font-size:64px;font-weight:900;letter-spacing:8px;margin:15px 0 5px;}.name{font-size:16px;color:#666;}img{width:200px;height:200px;}</style></head><body>${document.getElementById('qrCodeContainer').innerHTML}<div class="number">${document.getElementById('qrNumber').textContent}</div><div class="name">${document.getElementById('qrName').textContent}</div></body></html>`);
-    w.document.close(); setTimeout(()=>{w.print();w.close();},500);
+    var w=window.open('','','width=400,height=500');
+    w.document.write('<html><head><title>QR</title><style>body{margin:0;padding:20px;text-align:center;font-family:Arial,sans-serif;}.number{font-size:64px;font-weight:900;letter-spacing:8px;margin:15px 0 5px;}.name{font-size:16px;color:#666;}img{width:200px;height:200px;}</style></head><body>'+document.getElementById('qrCodeContainer').innerHTML+'<div class="number">'+document.getElementById('qrNumber').textContent+'</div><div class="name">'+document.getElementById('qrName').textContent+'</div></body></html>');
+    w.document.close(); setTimeout(function(){w.print();w.close();},500);
 }
 
 // ==================== СКАНЕР ====================
 
-let html5QrCode=null, scanMode='look', lastScannedId=null, scanShowAllItems=false;
+var html5QrCode=null, scanMode='look', lastScannedId=null, scanShowAllItems=false;
 
 function openScannerModal() {
     document.getElementById('fabMenu').classList.remove('active');
@@ -872,87 +1108,87 @@ function setScanMode(mode) {
 }
 
 function fillFindSelect() {
-    const s=document.getElementById('findTargetContainer'); s.innerHTML='<option value="">Выберите контейнер...</option>';
-    state.containers.forEach(c=>{s.innerHTML+=`<option value="${c.id}">${c.number?'#'+c.number+' ':''}${c.name} (${getContainerPath(c.id)})</option>`;});
+    var s=document.getElementById('findTargetContainer'); s.innerHTML='<option value="">Выберите контейнер...</option>';
+    state.containers.forEach(function(c){s.innerHTML+='<option value="'+c.id+'">'+(c.number?'#'+c.number+' ':'')+c.name+' ('+getContainerPath(c.id)+')</option>';});
 }
 
 async function startScanner() {
-    try { html5QrCode=new Html5Qrcode('scannerVideo'); await html5QrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:250,height:250}},onScanSuccess,()=>{}); }
+    try { html5QrCode=new Html5Qrcode('scannerVideo'); await html5QrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:250,height:250}},onScanSuccess,function(){}); }
     catch(e) { document.getElementById('scanResult').innerHTML='<div style="color:red;padding:10px;">Ошибка камеры.</div>'; }
 }
 
 function onScanSuccess(text) {
     if(text===lastScannedId) return;
     lastScannedId=text;
-    const c=state.containers.find(x=>x.id===text);
-    if(!c){document.getElementById('scanResult').innerHTML='<div style="color:orange;padding:10px;">QR не из SKLADITO</div>';setTimeout(()=>{lastScannedId=null;},2000);return;}
+    var c=state.containers.find(function(x){return x.id===text;});
+    if(!c){document.getElementById('scanResult').innerHTML='<div style="color:orange;padding:10px;">QR не из SKLADITO</div>';setTimeout(function(){lastScannedId=null;},2000);return;}
     if(scanMode==='look'){if(navigator.vibrate)navigator.vibrate(100);stopScanner();showScanResult(c);}
-    else{const tid=document.getElementById('findTargetContainer').value;if(!tid){document.getElementById('scanResult').innerHTML='<div style="color:orange;padding:10px;">Выберите контейнер</div>';lastScannedId=null;return;}
-    if(c.id===tid){if(navigator.vibrate)navigator.vibrate([100,50,200]);document.getElementById('scanResult').innerHTML=`<div style="background:#d4edda;color:#155724;padding:15px;border-radius:10px;text-align:center;"><div style="font-size:36px;">✅</div><div style="font-size:20px;font-weight:700;margin:10px 0;">НАШЁЛ!</div><div>#${c.number} — ${c.name}</div></div>`;stopScanner();}
-    else{document.getElementById('scanResult').innerHTML=`<div style="background:#fff3cd;color:#856404;padding:10px;border-radius:10px;text-align:center;">#${c.number} ${c.name} — не тот...</div>`;setTimeout(()=>{lastScannedId=null;},1000);}}
+    else{var tid=document.getElementById('findTargetContainer').value;if(!tid){document.getElementById('scanResult').innerHTML='<div style="color:orange;padding:10px;">Выберите контейнер</div>';lastScannedId=null;return;}
+    if(c.id===tid){if(navigator.vibrate)navigator.vibrate([100,50,200]);document.getElementById('scanResult').innerHTML='<div style="background:#d4edda;color:#155724;padding:15px;border-radius:10px;text-align:center;"><div style="font-size:36px;">&#10004;</div><div style="font-size:20px;font-weight:700;margin:10px 0;">НАШЁЛ!</div><div>#'+c.number+' &mdash; '+c.name+'</div></div>';stopScanner();}
+    else{document.getElementById('scanResult').innerHTML='<div style="background:#fff3cd;color:#856404;padding:10px;border-radius:10px;text-align:center;">#'+c.number+' '+c.name+' &mdash; не тот...</div>';setTimeout(function(){lastScannedId=null;},1000);}}
 }
 
 function showScanResult(c) {
     scanShowAllItems=false; lastScannedId=c.id;
-    document.getElementById('scanResultTitle').textContent=`${c.number?'#'+c.number+' ':''}${c.name}`;
+    document.getElementById('scanResultTitle').textContent=(c.number?'#'+c.number+' ':'')+c.name;
     renderScanContent(c.id,false);
-    document.getElementById('toggleAllItems').textContent='📋 Показать ВСЕ предметы';
+    document.getElementById('toggleAllItems').textContent='&#128203; Показать ВСЕ предметы';
     openModal('scanResultModal');
 }
 
 function renderScanContent(cid, showAll) {
-    const childC=state.containers.filter(c=>c.parent===cid), items=state.items.filter(i=>i.container===cid);
-    let html='';
-    if(showAll){const all=getAllItemsRecursive(cid);html+=`<div style="color:#4A90E2;font-weight:600;margin-bottom:10px;">Всего: ${all.length}</div>`;all.forEach(i=>{const cat=state.categories.find(c=>c.id===i.category);html+=`<div style="padding:10px;border-bottom:1px solid #eee;display:flex;align-items:center;"><span style="font-size:20px;margin-right:10px;">${cat?cat.icon:'📌'}</span><div style="flex:1;"><div style="font-weight:600;">${i.name} ×${i.quantity}</div><div style="font-size:12px;color:#888;">📍 ${getContainerPath(i.container)}</div></div></div>`;});if(all.length===0)html+='<div style="text-align:center;color:#999;padding:20px;">Пусто</div>';}
-    else{if(childC.length>0){html+='<div style="font-weight:600;margin-bottom:8px;">📦 Контейнеры:</div>';childC.forEach(c=>{const cnt=state.containers.filter(x=>x.parent===c.id).length+state.items.filter(i=>i.container===c.id).length;html+=`<div style="padding:10px;border-bottom:1px solid #eee;display:flex;align-items:center;"><span style="font-size:20px;margin-right:10px;">📦</span><div style="flex:1;"><span style="color:#4A90E2;margin-right:6px;">#${c.number||'?'}</span>${c.name}</div>${cnt>0?`<span style="background:#4A90E2;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">${cnt}</span>`:''}</div>`;});}
-    if(items.length>0){html+='<div style="font-weight:600;margin:12px 0 8px;">📌 Предметы:</div>';items.forEach(i=>{const cat=state.categories.find(c=>c.id===i.category);html+=`<div style="padding:10px;border-bottom:1px solid #eee;display:flex;align-items:center;"><span style="font-size:20px;margin-right:10px;">${cat?cat.icon:'📌'}</span><div style="flex:1;">${i.name}</div><span style="color:#999;">×${i.quantity}</span></div>`;});}
+    var childC=state.containers.filter(function(c){return c.parent===cid;}), items=state.items.filter(function(i){return i.container===cid;});
+    var html='';
+    if(showAll){var all=getAllItemsRecursive(cid);html+='<div style="color:#4A90E2;font-weight:600;margin-bottom:10px;">Всего: '+all.length+'</div>';all.forEach(function(i){var cat=state.categories.find(function(c){return c.id===i.category;});html+='<div style="padding:10px;border-bottom:1px solid #eee;display:flex;align-items:center;"><span style="font-size:20px;margin-right:10px;">'+(cat?cat.icon:'&#128204;')+'</span><div style="flex:1;"><div style="font-weight:600;">'+i.name+' x'+i.quantity+'</div><div style="font-size:12px;color:#888;">&#128205; '+getContainerPath(i.container)+'</div></div></div>';});if(all.length===0)html+='<div style="text-align:center;color:#999;padding:20px;">Пусто</div>';}
+    else{if(childC.length>0){html+='<div style="font-weight:600;margin-bottom:8px;">&#128230; Контейнеры:</div>';childC.forEach(function(c){var cnt=state.containers.filter(function(x){return x.parent===c.id;}).length+state.items.filter(function(i){return i.container===c.id;}).length;html+='<div style="padding:10px;border-bottom:1px solid #eee;display:flex;align-items:center;"><span style="font-size:20px;margin-right:10px;">&#128230;</span><div style="flex:1;"><span style="color:#4A90E2;margin-right:6px;">#'+(c.number||'?')+'</span>'+c.name+'</div>'+(cnt>0?'<span style="background:#4A90E2;color:white;padding:2px 8px;border-radius:10px;font-size:12px;">'+cnt+'</span>':'')+'</div>';});}
+    if(items.length>0){html+='<div style="font-weight:600;margin:12px 0 8px;">&#128204; Предметы:</div>';items.forEach(function(i){var cat=state.categories.find(function(c){return c.id===i.category;});html+='<div style="padding:10px;border-bottom:1px solid #eee;display:flex;align-items:center;"><span style="font-size:20px;margin-right:10px;">'+(cat?cat.icon:'&#128204;')+'</span><div style="flex:1;">'+i.name+'</div><span style="color:#999;">x'+i.quantity+'</span></div>';});}
     if(childC.length===0&&items.length===0)html+='<div style="text-align:center;color:#999;padding:20px;">Пусто</div>';}
     document.getElementById('scanResultContent').innerHTML=html;
 }
 
 function getAllItemsRecursive(cid) {
-    let all=[...state.items.filter(i=>i.container===cid)];
-    state.containers.filter(c=>c.parent===cid).forEach(ch=>{all=all.concat(getAllItemsRecursive(ch.id));});
+    var all=state.items.filter(function(i){return i.container===cid;}).slice();
+    state.containers.filter(function(c){return c.parent===cid;}).forEach(function(ch){all=all.concat(getAllItemsRecursive(ch.id));});
     return all;
 }
 
 function toggleScanAllItems() {
     scanShowAllItems=!scanShowAllItems; renderScanContent(lastScannedId,scanShowAllItems);
-    document.getElementById('toggleAllItems').textContent=scanShowAllItems?'📂 Текущий уровень':'📋 Показать ВСЕ';
+    document.getElementById('toggleAllItems').textContent=scanShowAllItems?'&#128194; Текущий уровень':'&#128203; Показать ВСЕ';
 }
 
 function navigateToScanned() { closeModal('scanResultModal'); if(lastScannedId)openContainer(lastScannedId); }
 
 function stopScanner() {
-    if(html5QrCode){html5QrCode.stop().then(()=>{html5QrCode.clear();html5QrCode=null;}).catch(()=>{});}
+    if(html5QrCode){html5QrCode.stop().then(function(){html5QrCode.clear();html5QrCode=null;}).catch(function(){});}
     closeModal('scannerModal');
 }
 
 // ==================== СПИСОК ПОКУПОК ====================
 
-function getShoppingItems() { return state.items.filter(i=>i.minQuantity>0&&i.quantity<i.minQuantity); }
+function getShoppingItems() { return state.items.filter(function(i){return i.minQuantity>0&&i.quantity<i.minQuantity;}); }
 
 function openShoppingList() {
-    const items=getShoppingItems(); let html='';
-    if(items.length===0){html='<div style="text-align:center;padding:30px;color:#999;"><div style="font-size:48px;margin-bottom:10px;">✅</div>Всё в порядке!</div>';}
-    else{html+=`<div style="color:#dc3545;font-weight:600;margin-bottom:15px;">Нужно докупить: ${items.length}</div>`;items.forEach(i=>{const cat=state.categories.find(c=>c.id===i.category);const need=i.minQuantity-i.quantity;const path=getContainerPath(i.container);const thumb=i.photo?`<img src="${i.photo}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;">`:`<span style="font-size:24px;margin-right:10px;">${cat?cat.icon:'📌'}</span>`;html+=`<div style="display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">${thumb}<div style="flex:1;"><div style="font-weight:600;">${i.name}</div><div style="font-size:12px;color:#888;">📍 ${path}</div></div><div style="text-align:right;"><div style="color:#dc3545;font-weight:700;">+${need}</div><div style="font-size:11px;color:#999;">есть ${i.quantity}/${i.minQuantity}</div></div></div>`;});}
+    var items=getShoppingItems(); var html='';
+    if(items.length===0){html='<div style="text-align:center;padding:30px;color:#999;"><div style="font-size:48px;margin-bottom:10px;">&#10004;</div>Всё в порядке!</div>';}
+    else{html+='<div style="color:#dc3545;font-weight:600;margin-bottom:15px;">Нужно докупить: '+items.length+'</div>';items.forEach(function(i){var cat=state.categories.find(function(c){return c.id===i.category;});var need=i.minQuantity-i.quantity;var path=getContainerPath(i.container);var thumb=i.photo?'<img src="'+i.photo+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;">':'<span style="font-size:24px;margin-right:10px;">'+(cat?cat.icon:'&#128204;')+'</span>';html+='<div style="display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #eee;">'+thumb+'<div style="flex:1;"><div style="font-weight:600;">'+i.name+'</div><div style="font-size:12px;color:#888;">&#128205; '+path+'</div></div><div style="text-align:right;"><div style="color:#dc3545;font-weight:700;">+'+need+'</div><div style="font-size:11px;color:#999;">есть '+i.quantity+'/'+i.minQuantity+'</div></div></div>';});}
     document.getElementById('shoppingList').innerHTML=html; openModal('shoppingModal');
 }
 
 function shareShoppingList() {
-    const items=getShoppingItems(); if(items.length===0){showToast('Список пуст!');return;}
-    let text='🛒 Список покупок SKLADITO:\n\n'; items.forEach(i=>{text+=`☐ ${i.name} — ${i.minQuantity-i.quantity} шт.\n`;}); text+=`\nВсего: ${items.length}`;
-    if(navigator.share){navigator.share({text}).catch(()=>{navigator.clipboard.writeText(text);showToast('Скопировано!');});}else{navigator.clipboard.writeText(text);showToast('Скопирован!');}
+    var items=getShoppingItems(); if(items.length===0){showToast('Список пуст!');return;}
+    var text='&#128722; Список покупок SKLADITO:\n\n'; items.forEach(function(i){text+='&#9744; '+i.name+' — '+(i.minQuantity-i.quantity)+' шт.\n';}); text+='\nВсего: '+items.length;
+    if(navigator.share){navigator.share({text:text}).catch(function(){navigator.clipboard.writeText(text);showToast('Скопировано!');});}else{navigator.clipboard.writeText(text);showToast('Скопировано!');}
 }
 
 function updateShoppingBadge() {
-    const c=getShoppingItems().length; const b=document.getElementById('shoppingBadge');
-    if(b){b.textContent=c>0?`⚠️ Нужно докупить: ${c}`:'Всё в порядке';b.style.color=c>0?'#dc3545':'';}
+    var c=getShoppingItems().length; var b=document.getElementById('shoppingBadge');
+    if(b){b.textContent=c>0?'Нужно докупить: '+c:'Всё в порядке';b.style.color=c>0?'#dc3545':'';}
 }
 
 // ==================== СПИСАНИЕ ====================
 
-let writeOffTargetItem=null;
+var writeOffTargetItem=null;
 
 function openWriteOff() {
     document.getElementById('writeOffSearch').value='';
@@ -961,42 +1197,214 @@ function openWriteOff() {
 }
 
 function searchWriteOff() {
-    const q=document.getElementById('writeOffSearch').value.toLowerCase().trim();
-    const r=document.getElementById('writeOffResults');
+    var q=document.getElementById('writeOffSearch').value.toLowerCase().trim();
+    var r=document.getElementById('writeOffResults');
     if(q.length<1){r.innerHTML='<div style="text-align:center;color:#999;padding:20px;">Введите название</div>';return;}
-    const found=state.items.filter(i=>i.name.toLowerCase().includes(q));
+    var found=state.items.filter(function(i){return i.name.toLowerCase().includes(q);});
     if(found.length===0){r.innerHTML='<div style="text-align:center;color:#999;padding:20px;">Не найдено</div>';return;}
-    let html=''; found.forEach(i=>{const cat=state.categories.find(c=>c.id===i.category);const path=getContainerPath(i.container);const thumb=i.photo?`<img src="${i.photo}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;">`:`<span style="font-size:24px;margin-right:10px;">${cat?cat.icon:'📌'}</span>`;
-    html+=`<div style="display:flex;align-items:center;padding:12px;border-bottom:1px solid #eee;cursor:pointer;border-radius:8px;" onclick="selectWriteOff('${i.id}')">${thumb}<div style="flex:1;"><div style="font-weight:600;">${i.name}</div><div style="font-size:12px;color:#888;">📍 ${path}</div></div><div style="font-weight:700;color:#4A90E2;">×${i.quantity}</div></div>`;});
+    var html=''; found.forEach(function(i){var cat=state.categories.find(function(c){return c.id===i.category;});var path=getContainerPath(i.container);var thumb=i.photo?'<img src="'+i.photo+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;margin-right:10px;">':'<span style="font-size:24px;margin-right:10px;">'+(cat?cat.icon:'&#128204;')+'</span>';
+    html+='<div style="display:flex;align-items:center;padding:12px;border-bottom:1px solid #eee;cursor:pointer;border-radius:8px;" onclick="selectWriteOff(\''+i.id+'\')">'+thumb+'<div style="flex:1;"><div style="font-weight:600;">'+i.name+'</div><div style="font-size:12px;color:#888;">&#128205; '+path+'</div></div><div style="font-weight:700;color:#4A90E2;">x'+i.quantity+'</div></div>';});
     r.innerHTML=html;
 }
 
 function selectWriteOff(itemId) {
-    const item=state.items.find(i=>i.id===itemId); if(!item)return;
+    var item=state.items.find(function(i){return i.id===itemId;}); if(!item)return;
     writeOffTargetItem=item;
-    const cat=state.categories.find(c=>c.id===item.category); const path=getContainerPath(item.container);
-    document.getElementById('writeOffConfirmContent').innerHTML=`<div style="text-align:center;padding:10px 0;">${item.photo?`<img src="${item.photo}" style="width:80px;height:80px;border-radius:10px;object-fit:cover;margin-bottom:10px;">`:`<div style="font-size:48px;margin-bottom:10px;">${cat?cat.icon:'📌'}</div>`}<div style="font-size:20px;font-weight:700;">${item.name}</div><div style="font-size:14px;color:#888;margin-top:5px;">📍 ${path}</div><div style="margin-top:10px;"><span style="font-size:28px;font-weight:700;color:#4A90E2;">×${item.quantity}</span>${item.minQuantity>0?`<span style="font-size:14px;color:#999;"> (мин: ${item.minQuantity})</span>`:''}</div></div>`;
+    var cat=state.categories.find(function(c){return c.id===item.category;}); var path=getContainerPath(item.container);
+    document.getElementById('writeOffConfirmContent').innerHTML='<div style="text-align:center;padding:10px 0;">'+(item.photo?'<img src="'+item.photo+'" style="width:80px;height:80px;border-radius:10px;object-fit:cover;margin-bottom:10px;">':'<div style="font-size:48px;margin-bottom:10px;">'+(cat?cat.icon:'&#128204;')+'</div>')+'<div style="font-size:20px;font-weight:700;">'+item.name+'</div><div style="font-size:14px;color:#888;margin-top:5px;">&#128205; '+path+'</div><div style="margin-top:10px;"><span style="font-size:28px;font-weight:700;color:#4A90E2;">x'+item.quantity+'</span>'+(item.minQuantity>0?'<span style="font-size:14px;color:#999;"> (мин: '+item.minQuantity+')</span>':'')+'</div></div>';
     document.getElementById('writeOffAmount').value=1; document.getElementById('writeOffAmount').max=item.quantity;
     openModal('writeOffConfirmModal');
 }
 
 async function confirmWriteOff() {
     if(!writeOffTargetItem)return;
-    const amount=parseInt(document.getElementById('writeOffAmount').value)||1;
+    var amount=parseInt(document.getElementById('writeOffAmount').value)||1;
     if(amount>writeOffTargetItem.quantity){showToast('Нельзя списать больше!');return;}
     writeOffTargetItem.quantity-=amount;
     try {
-        await fetch(`${API_BASE}/items/${writeOffTargetItem.id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(writeOffTargetItem) });
+        await fetch(API_BASE+'/items/'+writeOffTargetItem.id, { method:'PUT', headers:getAuthHeaders(), body:JSON.stringify(writeOffTargetItem) });
         await loadData();
-        const belowMin=writeOffTargetItem.minQuantity>0&&writeOffTargetItem.quantity<writeOffTargetItem.minQuantity;
+        var belowMin=writeOffTargetItem.minQuantity>0&&writeOffTargetItem.quantity<writeOffTargetItem.minQuantity;
         closeModal('writeOffConfirmModal'); closeModal('writeOffModal');
-        showToast(belowMin?`Списано ${amount}. ⚠️ Нужно докупить!`:`Списано ${amount}. Осталось: ${writeOffTargetItem.quantity}`);
+        showToast(belowMin?'Списано '+amount+'. Нужно докупить!':'Списано '+amount+'. Осталось: '+writeOffTargetItem.quantity);
         writeOffTargetItem=null;
         if(state.viewMode==='container')openContainer(state.currentContainer); else renderMain();
     } catch(e) { alert('Ошибка: '+e.message); }
 }
 
-init();
-    </script>
+// ==================== ПОЛЬЗОВАТЕЛИ ====================
+
+function openUsersScreen() {
+    loadUsers();
+    openModal('usersModal');
+}
+
+async function loadUsers() {
+    try {
+        var r = await fetch(API_BASE+'/users', { headers:getAuthHeaders() });
+        if (!r.ok) { showToast('Ошибка загрузки'); return; }
+        allUsers = await r.json();
+        renderUsersList();
+    } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+function renderUsersList() {
+    var html = '';
+    allUsers.forEach(function(u) {
+        var role = u.isAdmin ? 'Админ' : 'Пользователь';
+        var statusText = u.isActive ? 'Активен' : 'Не активирован';
+        var statusColor = u.isActive ? '#28a745' : '#fd7e14';
+        html += '<div class="user-row">' +
+            '<div class="user-row-info">' +
+                '<div class="user-row-name">'+u.name+'</div>' +
+                '<div class="user-row-meta">'+role+' &middot; <span style="color:'+statusColor+';">'+statusText+'</span></div>' +
+            '</div>' +
+            '<div class="user-row-actions">' +
+                '<button onclick="doResetUser(\''+u.id+'\')" title="Сбросить код">&#128260;</button>' +
+                (u.id !== currentUser.id ? '<button onclick="doDeleteUser(\''+u.id+'\',\''+u.name+'\')" title="Удалить">&#128465;&#65039;</button>' : '') +
+            '</div>' +
+        '</div>';
+    });
+    if (allUsers.length === 0) html = '<div style="text-align:center;color:#999;padding:20px;">Нет пользователей</div>';
+    document.getElementById('usersList').innerHTML = html;
+}
+
+function openAddUserModal() {
+    document.getElementById('newUserName').value = '';
+    document.getElementById('newUserAdmin').checked = false;
+    openModal('addUserModal');
+}
+
+async function doAddUser() {
+    var name = document.getElementById('newUserName').value.trim();
+    if (!name) { showToast('Введите имя'); return; }
+    var isAdmin = document.getElementById('newUserAdmin').checked;
+    try {
+        var r = await fetch(API_BASE+'/users', { method:'POST', headers:getAuthHeaders(), body:JSON.stringify({name:name, isAdmin:isAdmin}) });
+        var d = await r.json();
+        if (!r.ok) { showToast(d.error||'Ошибка'); return; }
+        closeModal('addUserModal');
+        showInviteLink(d.inviteToken);
+        await loadUsers();
+        showToast('Пользователь создан');
+    } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+async function doResetUser(userId) {
+    if (!confirm('Сбросить код? Пользователю нужно будет заново активироваться.')) return;
+    try {
+        var r = await fetch(API_BASE+'/users/'+userId+'/reset', { method:'POST', headers:getAuthHeaders() });
+        var d = await r.json();
+        if (!r.ok) { showToast(d.error||'Ошибка'); return; }
+        showInviteLink(d.inviteToken);
+        await loadUsers();
+        showToast('Код сброшен');
+    } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+async function doDeleteUser(userId, userName) {
+    if (!confirm('Удалить пользователя "'+userName+'"?')) return;
+    try {
+        var r = await fetch(API_BASE+'/users/'+userId, { method:'DELETE', headers:getAuthHeaders() });
+        if (!r.ok) { var d=await r.json(); showToast(d.error||'Ошибка'); return; }
+        await loadUsers();
+        showToast('Пользователь удалён');
+    } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+function showInviteLink(token) {
+    var link = window.location.origin + window.location.pathname + '?invite=' + token;
+    currentInviteLink = link;
+    document.getElementById('inviteLinkText').textContent = link;
+    document.getElementById('inviteLinkContainer').style.display = 'block';
+}
+
+function copyInviteLink() {
+    navigator.clipboard.writeText(currentInviteLink).then(function() {
+        showToast('Ссылка скопирована!');
+    }).catch(function() {
+        // fallback
+        var ta = document.createElement('textarea');
+        ta.value = currentInviteLink;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Ссылка скопирована!');
+    });
+}
+
+// ==================== ДОСТУП К КОНТЕЙНЕРУ ====================
+
+var accessContainerId = null;
+
+async function openAccessModal(containerId) {
+    accessContainerId = containerId;
+    var container = state.containers.find(function(c) { return c.id === containerId; });
+    document.getElementById('accessContainerName').textContent = (container ? (container.number ? '#'+container.number+' ' : '') + container.name : '');
+
+    // Загрузить помощников
+    try {
+        var r = await fetch(API_BASE+'/container-access/'+containerId, { headers:getAuthHeaders() });
+        var records = await r.json();
+
+        // Загрузить всех пользователей если админ
+        var users = [];
+        if (currentUser.isAdmin) {
+            var r2 = await fetch(API_BASE+'/users', { headers:getAuthHeaders() });
+            users = await r2.json();
+        }
+
+        var html = '';
+        if (records.length === 0) {
+            html = '<div style="color:#999;padding:10px;text-align:center;">Нет помощников</div>';
+        } else {
+            records.forEach(function(rec) {
+                var u = users.find(function(x) { return x.id === rec.userId; });
+                var name = u ? u.name : rec.userId;
+                html += '<div class="access-row">' +
+                    '<div class="access-row-name">'+name+'</div>' +
+                    '<button onclick="doRevokeAccess(\''+rec.userId+'\')" style="color:#dc3545;">&#10005;</button>' +
+                '</div>';
+            });
+        }
+        document.getElementById('accessList').innerHTML = html;
+
+        // Заполнить select с пользователями
+        var sel = document.getElementById('accessUserSelect');
+        sel.innerHTML = '<option value="">Выберите...</option>';
+        var existingIds = records.map(function(r) { return r.userId; });
+        users.filter(function(u) {
+            return u.id !== (container ? container.ownerId : '') && !existingIds.includes(u.id) && u.isActive;
+        }).forEach(function(u) {
+            sel.innerHTML += '<option value="'+u.id+'">'+u.name+'</option>';
+        });
+
+        openModal('accessModal');
+    } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+async function doGrantAccess() {
+    var userId = document.getElementById('accessUserSelect').value;
+    if (!userId) { showToast('Выберите пользователя'); return; }
+    try {
+        var r = await fetch(API_BASE+'/container-access', { method:'POST', headers:getAuthHeaders(), body:JSON.stringify({containerId:accessContainerId, userId:userId}) });
+        if (!r.ok) { var d=await r.json(); showToast(d.error||'Ошибка'); return; }
+        showToast('Доступ выдан');
+        openAccessModal(accessContainerId);
+    } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+async function doRevokeAccess(userId) {
+    if (!confirm('Забрать доступ?')) return;
+    try {
+        var r = await fetch(API_BASE+'/container-access', { method:'DELETE', headers:getAuthHeaders(), body:JSON.stringify({containerId:accessContainerId, userId:userId}) });
+        if (!r.ok) { var d=await r.json(); showToast(d.error||'Ошибка'); return; }
+        showToast('Доступ отозван');
+        openAccessModal(accessContainerId);
+    } catch(e) { showToast('Ошибка: '+e.message); }
+}
+
+</script>
 </body>
 </html>
